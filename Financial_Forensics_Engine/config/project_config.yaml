@@ -1,0 +1,75 @@
+project_name: "Financial_Forensics_Engine"
+version: "0.1.0"
+timezone: "Asia/Taipei"
+
+# 日誌相關配置
+# logger.py 中的 setup_logger 將會使用這些值 (如果 Orchestrator 傳遞它們)
+# 或者 Orchestrator 可以直接使用這裡的 log_file_path 來初始化 logger
+logging:
+  console_level: "INFO" # 控制台輸出的日誌級別
+  file_level: "DEBUG"   # 檔案輸出的日誌級別
+  # 日誌檔案路徑，相對於專案根目錄 Financial_Forensics_Engine/
+  # Orchestrator 或 logger.py 在初始化時需要正確處理此相對路徑
+  log_file_name: "engine.log" # logger.py 將把它放到 data_workspace/logs/ 下
+  max_log_file_size_mb: 10
+  log_backup_count: 5
+
+# API 金鑰配置
+# 這裡的值是 API 金鑰在 Colab Secrets 或環境變數中的「名稱」
+# config_loader.py 將嘗試根據這些名稱加載實際的金鑰值
+api_keys:
+  finmind_token: "FINMIND_API_TOKEN"  # FinMind API 的金鑰名稱
+  fred_api_key: "FRED_API_KEY"        # FRED API 的金鑰名稱
+  # 可以根據需要添加更多 API 金鑰，例如：
+  # alpha_vantage_key: "ALPHA_VANTAGE_API_KEY"
+  # eodhistoricaldata_key: "EODHD_API_KEY"
+
+# 數據庫相關配置
+database:
+  raw_lake_db_name: "raw_lake.duckdb" # 相對於 data_workspace/raw_lake/
+  curated_mart_db_name: "curated_mart.duckdb" # 相對於 data_workspace/curated_mart/
+  # manifest_db_name: "manifest.db" # TAIFEX 檔案處理清單資料庫，相對於 data_workspace/
+
+# 網路請求重試策略 (供 requests-cache 或 tenacity 使用)
+retry_config:
+  attempts: 3               # 最大重試次數
+  wait_fixed_seconds: 5     # 每次重試前等待的固定秒數
+  # 也可以考慮指數退避等更複雜策略
+  # wait_exponential_multiplier: 1 # 指數退避的乘數
+  # wait_exponential_max: 60       # 指數退避的最大等待秒數
+
+# TAIFEX 服務相關配置
+taifex_service:
+  # 輸入目錄，相對於 data_workspace/
+  input_dir_unzipped: "input/taifex/unzipped/"
+  input_dir_raw_zips: "input/taifex/raw_zips/"
+  # 檔案處理清單資料庫名稱 (如果 taifex_service 自己管理一個)
+  # manifest_db_name: "taifex_manifest.db" # 相對於 data_workspace/
+  fingerprint_lines: 5 # 用於計算檔案指紋的行數
+
+# 其他服務的佔位配置 (未來擴展)
+ingestion_service:
+  # 可以在這裡定義全局的 API 請求參數，例如 user_agent
+  default_user_agent: "FinancialForensicsEngine/0.1.0 (Python; +http://example.com/botinfo)"
+  # 快取檔案名稱 (requests-cache 使用)
+  cache_name: "api_cache" # 將存放在 data_workspace/cache/api_cache.sqlite
+
+feature_service:
+  # 特徵計算相關參數
+  default_short_window: 5
+  default_long_window: 20
+
+# 專案路徑配置 (由 Orchestrator 在啟動時根據實際環境設定，此處為預期結構)
+# 這些路徑通常是相對於專案根目錄 Financial_Forensics_Engine/
+paths:
+  config_dir: "config"
+  data_workspace: "data_workspace"
+  input_taifex_unzipped: "data_workspace/input/taifex/unzipped"
+  input_taifex_raw_zips: "data_workspace/input/taifex/raw_zips"
+  raw_lake_dir: "data_workspace/raw_lake"
+  curated_mart_dir: "data_workspace/curated_mart"
+  reports_dir: "data_workspace/reports"
+  cache_dir: "data_workspace/cache"
+  logs_dir: "data_workspace/logs"
+  # notebooks_dir: "notebooks" # 如果需要在腳本中引用
+  # src_dir: "src" # 如果需要在腳本中引用

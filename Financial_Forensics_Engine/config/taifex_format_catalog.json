@@ -1,0 +1,98 @@
+{
+  "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2": {
+    "description": "每日選擇權行情 (日盤) - 範例指紋 (此指紋為示意，需由實際檔案生成)",
+    "source_type": "options_daily_quotes",
+    "target_table_raw": "raw_taifex_options_daily_quotes",
+    "target_table_curated": "fact_options_daily_quotes",
+    "parser_config": {
+      "skiprows": 1,
+      "encoding": "big5",
+      "thousands": ",",
+      "header_rows_for_fingerprint": 5,
+      "expected_columns_count": 15
+    },
+    "column_mapping_raw": {
+      "交易日期": "trade_date",
+      "契約": "contract_symbol",
+      "到期月份(週別)": "expiry_period",
+      "履約價": "strike_price",
+      "買賣權": "option_type",
+      "開盤價": "open_price",
+      "最高價": "high_price",
+      "最低價": "low_price",
+      "收盤價": "close_price",
+      "成交量": "volume",
+      "結算價": "settlement_price",
+      "未沖銷契約量": "open_interest",
+      "最後最佳買價": "best_bid_price",
+      "最後最佳賣價": "best_ask_price",
+      "歷史最高價": "historical_high_price",
+      "歷史最低價": "historical_low_price",
+      "是否因訊息面暫停交易": "trading_halted",
+      "價外%": "out_of_money_percentage",
+      "隱含波動率": "implied_volatility"
+    },
+    "required_columns_raw": ["契約", "到期月份(週別)", "履約價", "買賣權", "收盤價", "成交量", "結算價", "未沖銷契約量"],
+    "data_type_conversion_raw": {
+      "履約價": "float",
+      "開盤價": "float",
+      "最高價": "float",
+      "最低價": "float",
+      "收盤價": "float",
+      "成交量": "int",
+      "結算價": "float",
+      "未沖銷契約量": "int"
+    },
+    "date_columns_raw": ["交易日期"],
+    "cleaner_function": "clean_options_daily_data",
+    "schema_curated_ref": "fact_options_daily_quotes"
+  },
+  "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5": {
+    "description": "三大法人交易資訊 (期貨) - 範例指紋 (此指紋為示意)",
+    "source_type": "institutional_trades_futures",
+    "target_table_raw": "raw_taifex_institutional_futures_trades",
+    "target_table_curated": "fact_institutional_futures_trades",
+    "parser_config": {
+      "skiprows": 1,
+      "header": 0,
+      "encoding": "big5",
+      "thousands": ",",
+      "header_rows_for_fingerprint": 3
+    },
+    "column_mapping_raw": {
+      "交易日期": "trade_date",
+      "商品名稱": "product_name",
+      "身份別": "investor_type",
+      "多方交易口數": "long_contracts",
+      "多方交易金額": "long_value",
+      "空方交易口數": "short_contracts",
+      "空方交易金額": "short_value",
+      "多空交易口數淨額": "net_contracts",
+      "多空交易金額淨額": "net_value",
+      "多方未平倉口數": "long_open_interest",
+      "多方未平倉金額": "long_open_interest_value",
+      "空方未平倉口數": "short_open_interest",
+      "空方未平倉金額": "short_open_interest_value",
+      "多空未平倉口數淨額": "net_open_interest",
+      "多空未平倉金額淨額": "net_open_interest_value"
+    },
+    "required_columns_raw": ["商品名稱", "身份別", "多方交易口數", "空方交易口數", "多方未平倉口數", "空方未平倉口數"],
+     "data_type_conversion_raw": {
+      "多方交易口數": "int",
+      "多方交易金額": "int",
+      "空方交易口數": "int",
+      "空方交易金額": "int",
+      "多空交易口數淨額": "int",
+      "多空交易金額淨額": "int",
+      "多方未平倉口數": "int",
+      "多方未平倉金額": "int",
+      "空方未平倉口數": "int",
+      "空方未平倉金額": "int",
+      "多空未平倉口數淨額": "int",
+      "多空未平倉金額淨額": "int"
+    },
+    "date_columns_raw": ["交易日期"],
+    "cleaner_function": "clean_institutional_trades_data",
+    "schema_curated_ref": "fact_institutional_futures_trades"
+  }
+}
