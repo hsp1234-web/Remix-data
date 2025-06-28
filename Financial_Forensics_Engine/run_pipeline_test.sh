@@ -1,34 +1,41 @@
 #!/bin/bash
 
-# 當任何命令失敗時立即終止腳本，確保原子性
+# 當任何命令失敗時立即終止腳本
 set -e
 
-echo "--- [1/4] 開始執行原子化測試規格書 ---"
+echo "--- [1/6] 開始執行原子化測試規格書 (含語法檢查) ---" # 更新總步驟數
 
 # 檢查當前目錄結構，用於除錯
 echo "--- 當前工作目錄: $(pwd) ---"
 echo "--- 專案根目錄檔案列表: ---"
-ls -l
+ls -lA
 
-# --- 步驟一：安裝所有依賴 ---
-echo "\n--- [2/4] 正在從 requirements.txt 安裝依賴... ---"
-# 使用 --user 選項可能有助於在某些受限環境中安裝
-# 移除了 --disable-pip-version-check 和 --no-cache-dir 以簡化，如果需要可以加回
-pip install -r requirements.txt
+# --- 步驟二：安裝所有依賴 ---
+echo -e "\n--- [2/6] 正在從 requirements.txt 安裝依賴... ---" # 更新步驟數
+pip install --disable-pip-version-check --no-cache-dir -r requirements.txt
+echo "--- 依賴安裝完成 ---"
 
-# --- 步驟二：設定 Python 環境 ---
-# 雖然在此腳本中，當前目錄就是專案根目錄，但這是一個好習慣
+# --- 步驟三：執行靜態語法與品質檢查 ---
+echo -e "\n--- [3/6] 正在使用 Flake8 進行語法檢查... ---" # 更新步驟數
+# 我們使用 flake8 來檢查當前目錄下的所有 .py 檔案
+# --count: 顯示錯誤總數
+# --select=E9,F63,F7,F82: 只選擇最嚴重的錯誤，主要是語法錯誤(E9)、無效語法(F63)、解析錯誤(F7)、未定義名稱(F82)等
+# --show-source: 顯示有問題的程式碼行
+# --statistics: 顯示統計數據
+flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+echo "--- 語法檢查通過 ---"
+
+# --- 步驟四：設定 Python 環境 ---
 export PYTHONPATH=$(pwd)
-echo "--- PYTHONPATH 已設定為: ${PYTHONPATH} ---"
+echo -e "\n--- [4/6] PYTHONPATH 已設定為: ${PYTHONPATH} ---" # 更新步驟數
 
-# --- 步驟三：執行主協調器 ---
-echo "\n--- [3/4] 正在執行 main_orchestrator.py... ---"
-# 確保 Python 能夠找到 main_orchestrator.py
-# 如果 PYTHONPATH 正確設定，直接執行即可
+# --- 步驟五：執行主協調器 ---
+echo -e "\n--- [5/6] 正在執行 main_orchestrator.py... ---" # 更新步驟數
+# 由於我們已確認語法無誤，可以安全地執行
 python main_orchestrator.py
 
-# --- 步驟四：驗證結果 ---
-echo "\n--- [4/4] 正在驗證數據庫結果... ---"
+# --- 步驟六：驗證數據庫結果 ---
+echo -e "\n--- [6/6] 正在驗證數據庫結果... ---" # 更新步驟數
 
 # 驗證 raw_lake 資料庫和目標表
 RAW_DB_PATH="data_workspace/raw_lake/raw_lake.duckdb"
