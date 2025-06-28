@@ -15,3 +15,5 @@ An AI (Llama 3 8B) assists in analyzing market briefings and generating trading 
 
 ## Setup and Usage
 (To be detailed later)
+
+<!-- Planning Phase V1 Completed -->
