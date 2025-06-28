@@ -1,0 +1,4 @@
+2025-06-25 15:52:43,119 (Taipei: 2025-06-25 23:52:43 UTC+0000) [INFO] - System build process started.
+2025-06-25 15:52:43,119 (Taipei: 2025-06-25 23:52:43 UTC+0000) [INFO] - This is a test info message.
+2025-06-25 15:52:43,119 (Taipei: 2025-06-25 23:52:43 UTC+0000) [WARNING] - This is a test warning message.
+2025-06-25 15:52:43,119 (Taipei: 2025-06-25 23:52:43 UTC+0000) [INFO] - Log file is at: api_test_logs/2025-06-25T235243+0000_system_build_log.txt

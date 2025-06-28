@@ -1,0 +1,35 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0 # 使用一個較新的穩定版本
+    hooks:
+    -   id: trailing-whitespace # 修剪行尾多餘空白
+    -   id: end-of-file-fixer   # 確保檔案以單一空行結尾
+    -   id: check-yaml          # 檢查 YAML 檔案語法
+    -   id: check-added-large-files # 防止意外提交大檔案
+
+-   repo: https://github.com/psf/black
+    rev: 24.4.2 # Black 的一個較新穩定版本
+    hooks:
+    -   id: black
+        language_version: python3.9 # 指定 Python 版本
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.1 # Ruff 的一個較新穩定版本
+    hooks:
+    -   id: ruff
+        args: [--fix, --exit-non-zero-on-fix] # 自動修復可修復的問題，並在修復後以非零狀態退出以重新檢查
+    -   id: ruff-format # Ruff 也有自己的格式化工具，但我們主要用 Black，這裡可以只用 ruff 的 linter
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0 # MyPy 的一個較新穩定版本
+    hooks:
+    -   id: mypy
+        additional_dependencies: [
+            "pandas>=2.2.0",
+            "pytz>=2023.3",
+            "types-pytz>=2023.3" # pytz 的類型存根
+            # duckdb 本身可能沒有完整的類型存根，mypy 配置中已設定 ignore_missing_imports
+        ]
+        exclude: ^(notebooks/|tests/|scripts/) # 初始階段可先排除測試和腳本，待專案成熟後再逐步納入

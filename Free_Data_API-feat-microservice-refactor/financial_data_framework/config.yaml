@@ -1,0 +1,25 @@
+# 系統組態設定檔
+
+# 數據庫設定
+database:
+  # 可選 'duckdb' 或未來擴展的其他數據庫類型
+  type: 'duckdb'
+  path: 'data_hub.duckdb'
+
+# 數據獲取器設定
+fetcher:
+  # 可選 'yfinance' 或未來擴展的其他獲取器
+  type: 'yfinance'
+  # 穩健性參數
+  retries: 5           # 最大重試次數
+  backoff_factor: 1    # 指數退避因子 (e.g., 1s, 2s, 4s...)
+  delay_min_seconds: 1 # 請求間最小延遲
+  delay_max_seconds: 3 # 請求間最大延遲 (加入抖動)
+
+# 並行處理設定
+concurrency:
+  # 用於 I/O 密集型任務 (如 API 下載)
+  max_io_workers: 10
+  # 用於 CPU 密集型任務 (未來擴展，如指標計算)
+  # 'null' 表示使用 os.cpu_count()
+  max_cpu_workers: null

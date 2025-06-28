@@ -1,0 +1,154 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a PyInstaller script; this is not the
+#  case for Conda.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytestdebug.log
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# PEP 582; __pypackages__ directory
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# VSCode
+.vscode/
+
+# Project-specific ignores
+# Cache files
+CACHE_Market_Data/
+*.sqlite
+*.sqlite-journal
+
+# Output prompts (if they are considered build artifacts and not part of repo)
+# OUT_Processed_Prompts/ # Decided to keep this if it contains manifest
+
+# Environment variable files
+.env*
+!/.env.example # if you have an example env file
+
+# Test reports
+test_reports/api_deep_test_report_*.txt
+!test_reports/sample_api_test_report.txt 
+
+# IDE specific
+.idea/
+*.iml
+nbproject/
+*.sublime-project
+*.sublime-workspace
+project.xcworkspace/
+xcuserdata/

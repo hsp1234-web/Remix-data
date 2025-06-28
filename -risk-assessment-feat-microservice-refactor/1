@@ -1,0 +1,280 @@
+# -*- coding: utf-8 -*-
+# @title 📈 全景市場分析儀 v1.0 (實戰測試版)
+# @markdown ### 系統介紹
+# @markdown 本腳本為一個企業級、全方位的市場分析報告生成引擎。它融合了宏觀市場指標、產業龍頭基本面與核心市場微觀結構，旨在為AI提供一個前所未有的、包含深度與廣度的全景市場視圖。
+# @markdown - **V6 方案實作**: 完整實現了我們最終討論的「全景市場分析儀」方案，結合了「焦點與上下文」以及「龍頭企業深度剖析」。
+# @markdown - **100% 本地模擬**: 無需任何 API 金鑰或掛載 Google Drive，內建完整的數據模擬器，可一鍵執行並驗證核心邏輯。
+# @markdown - **智慧數據處理**: 自動從檔名解析日期，智慧生成「每日量化日誌」，並在偵測到異常時保留更詳細的數據。
+# @markdown - **模組化設計**: 程式碼結構清晰，易於理解，並為下一步替換為真實 API (yfinance, Gemini) 預留了接口。
+# @markdown ---
+# @markdown ### 專案版本更新日誌 (Changelog)
+# @markdown - **`v1.0` (當前版本) - 全景市場分析儀 (實戰測試版)**
+# @markdown   - **核心功能**: 首次完整實現 V6 方案，在 V5 的基礎上加入了「龍頭企業深度剖析」模組。
+# @markdown   - **數據擴充**: 將模擬數據源擴充至包含美國公債收益率 (TLT, ^IRX, ^FVX, ^TYX) 和一個可自訂的全球龍頭企業觀察名單。
+# @markdown   - **深度分析**: 為龍頭企業模擬生成並提取基本面快照、分析師情緒、關鍵新聞和機構持股等資訊。
+# @markdown   - **格式化**: 採用了您建議的專業 Colab 標頭 (`@title`) 與 Markdown 說明。
+# @markdown - **`v0.5` - 焦點與上下文混合表示法 (本地沙盤推演)**
+# @markdown   - **核心功能**: 在單一儲存格中，建立了獨立運行的 V5 方案模擬器。
+# @markdown   - **驗證**: 成功驗證了從檔名解析、日期計算、「每日量化日誌」與「焦點小時數據」的混合生成流程。
+# @markdown - **`v0.1` - `v0.4` - 核心概念演進階段**
+# @markdown   - 確立了從「週數」換算「精確日期」、擴大數據窗口、從靜態摘要進化至包含價量分析和事件日誌的「量化敘事摘要」，並最終定版於 V5 方案。
+
+# ==============================================================================
+# 步驟 0: 導入所有必要的函式庫
+# ==============================================================================
+import re
+import random
+from datetime import datetime, timedelta
+import pandas as pd
+
+# ==============================================================================
+# 步驟 1: 沙盤推演設定區
+# 您可以在此處修改參數，來測試不同情境
+# ==============================================================================
+
+# 模擬的週報檔名
+MOCK_FILENAME = "每週評論-2022年第43週_Gemini處理.txt"
+
+# 模擬的宏觀市場商品列表
+MACRO_TICKERS = [
+    '^TWII', '^GSPC', '^IXIC', '^DJI', # 股市核心
+    'TLT', '^IRX', '^FVX', '^TNX', '^TYX', # 利率/債市
+    '^VIX', '^MOVE', # 情緒
+    'CL=F', 'GC=F' # 商品
+]
+
+# 模擬的龍頭企業觀察名單
+BELLWETHER_STOCKS = {
+    'AAPL': '蘋果', 'MSFT': '微軟', 'NVDA': '輝達', 'TSLA': '特斯拉',
+    '2330.TW': '台積電', '2454.TW': '聯發科',
+    'JPM': '摩根大通', 'WMT': '沃爾瑪'
+}
+
+
+# ==============================================================================
+# 步驟 2: 建立一個強大的模擬器來取代真實 API
+# 在實戰中，我們會將這部分替換為真實的 yfinance 呼叫
+# ==============================================================================
+
+class MockYFinance:
+    """一個功能強大的 yfinance 模擬器，用來生成逼真的假數據。"""
+    def __init__(self, ticker):
+        self.ticker = ticker
+        self._info = self._generate_info()
+        self._financials = self._generate_financials()
+        self._recommendations = self._generate_recommendations()
+        self._news = self._generate_news()
+        self._holders = self._generate_holders()
+
+    def _generate_info(self):
+        industries = ['消費電子', '軟體服務', '半導體', '電動車', '銀行', '零售']
+        return {
+            'shortName': BELLWETHER_STOCKS.get(self.ticker, self.ticker),
+            'industry': random.choice(industries),
+            'marketCap': random.randint(500, 3000) * 1_000_000_000,
+            'fiftyTwoWeekLow': random.uniform(80, 120),
+            'fiftyTwoWeekHigh': random.uniform(180, 250),
+        }
+
+    def _generate_financials(self):
+        data = {'Revenue': [random.randint(100, 500) * 1e9 for _ in range(4)],
+                'Gross Profit': [random.randint(40, 200) * 1e9 for _ in range(4)]}
+        return pd.DataFrame(data, index=[f'202{i}-12-31' for i in range(4)])
+
+    def _generate_recommendations(self):
+        firms = ['Morgan Stanley', 'Goldman Sachs', 'J.P. Morgan', 'UBS', 'Citi']
+        grades = ['Buy', 'Overweight', 'Hold', 'Sell']
+        data = {'Firm': random.sample(firms, 4), 'To Grade': random.choices(grades, k=4)}
+        return pd.DataFrame(data)
+
+    def _generate_news(self):
+        headlines = [
+            f"{self._info['shortName']} 發布超預期財報，盤後股價大漲",
+            f"分析師擔憂 {self._info['industry']} 前景，下調 {self._info['shortName']} 評級",
+            f"傳聞 {self._info['shortName']} 將發布革命性新產品",
+            "執行長表示對下半年增長充滿信心"
+        ]
+        return [{'title': random.choice(headlines), 'publisher': '財經日報'} for _ in range(3)]
+
+    def _generate_holders(self):
+        holders = ['Vanguard Group', 'BlackRock Inc.', 'State Street Corp', 'Fidelity']
+        data = {'Holder': random.sample(holders, 4), 'Shares': [random.randint(1, 5) * 1e8 for _ in range(4)]}
+        return pd.DataFrame(data)
+
+    def history(self, start, end, interval='1d'):
+        freq = 'h' if interval == '1h' else 'D'
+        dates = pd.to_datetime(pd.date_range(start=start, end=end, freq=freq))
+        dates = dates[dates.dayofweek < 5] # 過濾週末
+        if len(dates) == 0: return pd.DataFrame()
+
+        base_price = random.uniform(100, 500)
+        prices = [base_price * (1 + random.uniform(-0.02, 0.02)) for _ in range(len(dates))]
+
+        df = pd.DataFrame(index=dates)
+        df['Open'] = [p * random.uniform(0.99, 1.01) for p in prices]
+        df['High'] = [max(o, p * random.uniform(1.0, 1.03)) for o, p in zip(df['Open'], prices)]
+        df['Low'] = [min(o, p * random.uniform(0.97, 1.0)) for o, p in zip(df['Open'], prices)]
+        df['Close'] = [random.uniform(l, h) for l, h in zip(df['Low'], df['High'])]
+        df['Volume'] = [random.randint(10, 100) * 1e6 for _ in range(len(dates))]
+
+        if len(df) > 5: # 隨機製造一個成交量異常日
+            anomaly_idx = random.randint(1, len(df) - 2)
+            df.iloc[anomaly_idx, df.columns.get_loc('Volume')] *= random.uniform(3.5, 5.0)
+        return df.round(2)
+
+    @property
+    def info(self): return self._info
+    @property
+    def financials(self): return self._financials
+    def get_recommendations(self): return self._recommendations
+    def get_news(self): return self._news
+    def get_institutional_holders(self): return self._holders
+
+# ==============================================================================
+# 步驟 3: 核心處理函式 (V5 & V6 邏輯的程式碼實現)
+# ==============================================================================
+
+def get_candlestick_feature(row):
+    """根據開盤價和收盤價，簡單判斷K線特徵。"""
+    body_size = abs(row['Open'] - row['Close'])
+    full_range = row['High'] - row['Low']
+    if full_range == 0 or body_size / full_range < 0.2: return "十字星"
+    return "長紅K線" if row['Close'] > row['Open'] else "長黑K線"
+
+def generate_focus_context_text(ticker, total_start, total_end, focus_start, focus_end):
+    """生成宏觀數據的「焦點與上下文」文本。"""
+    # 實戰中，這裡會是帶有重試和快取機制的 yfinance 呼叫
+    mock_api = MockYFinance(ticker)
+    full_daily_data = mock_api.history(start=total_start, end=total_end, interval='1d')
+    full_hourly_data = mock_api.history(start=total_start, end=total_end, interval='1h')
+    if full_daily_data.empty: return f"# {ticker}\n- 無法獲取數據。\n"
+
+    output_lines = [f"# {ticker} - 宏觀市場數據\n"]
+    output_lines.append("# PART 1: 宏觀上下文 (前後各2個月) - 每日量化日誌")
+
+    avg_volume = full_daily_data['Volume'].mean()
+    context_data = full_daily_data[(full_daily_data.index.date < focus_start.date()) | (full_daily_data.index.date > focus_end.date())]
+
+    for date, row in context_data.iterrows():
+        daily_change = (row['Close'] / row['Open'] - 1) * 100
+        k_feature = get_candlestick_feature(row)
+        volume_rating = row['Volume'] / avg_volume if avg_volume > 0 else 0
+        log_line = f"- {date.strftime('%Y-%m-%d')}: {daily_change:+.1f}%, {k_feature}, 成交量:{volume_rating:.1f}x"
+        output_lines.append(log_line)
+
+        if volume_rating > 3.0:
+            output_lines.append("  - [偵測到關鍵事件日：附上當日完整小時線數據]")
+            anomaly_hourly_data = full_hourly_data[full_hourly_data.index.date == date.date()]
+            output_lines.append("    " + anomaly_hourly_data.to_string().replace('\n', '\n    '))
+
+    output_lines.append(f"\n# PART 2: 焦點分析區 (核心週: {focus_start.strftime('%Y-%m-%d')} to {focus_end.strftime('%Y-%m-%d')})")
+    output_lines.append("- 提供本週完整、未經壓縮的原始小時線數據")
+    focus_hourly_data = full_hourly_data[(full_hourly_data.index.date >= focus_start.date()) & (full_hourly_data.index.date <= focus_end.date())]
+    output_lines.append(focus_hourly_data.to_string())
+
+    return "\n".join(output_lines)
+
+def generate_deep_dive_text(ticker):
+    """為龍頭企業生成深度剖析摘要。"""
+    # 實戰中，這裡會是帶有重試和快取機制的 yfinance 呼叫
+    mock_api = MockYFinance(ticker)
+    info = mock_api.info
+    financials = mock_api.financials
+    recom = mock_api.get_recommendations()
+    news = mock_api.get_news()
+    holders = mock_api.get_institutional_holders()
+
+    lines = [f"- **{info['shortName']} ({ticker})**"]
+    try:
+        rev_g = (financials['Revenue'].iloc[-1] / financials['Revenue'].iloc[-2] - 1) * 100
+        lines.append(f"  - 基本面: 產業({info['industry']}), 市值({info['marketCap']/1e9:.1f}B), 最新營收年增({rev_g:.1f}%)")
+    except:
+        lines.append(f"  - 基本面: 產業({info['industry']}), 市值({info['marketCap']/1e9:.1f}B)")
+
+    lines.append(f"  - 分析師情緒: {recom['To Grade'].value_counts().to_dict()}")
+    if news: lines.append(f"  - 關鍵新聞: \"{news[0]['title']}\" ({news[0]['publisher']})")
+    if not holders.empty: lines.append(f"  - 主要機構持股: {list(holders['Holder'].iloc[:2])}")
+
+    return "\n".join(lines)
+
+# ==============================================================================
+# 步驟 4: 主執行函式 - 啟動我們的全景市場分析儀
+# ==============================================================================
+
+def run_panoramic_simulation():
+    """主模擬測試函式，整合所有模塊。"""
+    print(f"--- 開始針對檔名 '{MOCK_FILENAME}' 進行 V6 全景分析儀沙盤推演 ---")
+
+    # 1. 解析檔名，計算日期
+    match = re.search(r'(\d{4})年第(\d{1,2})週', MOCK_FILENAME)
+    year, week_num = map(int, match.groups())
+    focus_start = datetime.fromisocalendar(year, week_num, 1)
+    focus_end = focus_start + timedelta(days=6)
+    total_start = focus_start - timedelta(days=60)
+    total_end = focus_end + timedelta(days=60)
+    print(f"\n[步驟 1/4] 成功解析日期 -> 焦點週: {focus_start.strftime('%Y-%m-%d')} to {focus_end.strftime('%Y-%m-%d')}")
+
+    # 2. 生成宏觀市場數據上下文
+    print("\n[步驟 2/4] 正在生成宏觀市場的「焦點與上下文」數據...")
+    macro_context_text = []
+    for ticker in MACRO_TICKERS:
+        text = generate_focus_context_text(ticker, total_start, total_end, focus_start, focus_end)
+        macro_context_text.append(text)
+        print(f"  - 已處理宏觀指標: {ticker}")
+
+    # 3. 生成龍頭企業深度剖析
+    print("\n[步驟 3/4] 正在生成龍頭企業的「深度剖析」數據...")
+    deep_dive_texts = []
+    for ticker in BELLWETHER_STOCKS.keys():
+        text = generate_deep_dive_text(ticker)
+        deep_dive_texts.append(text)
+        print(f"  - 已剖析龍頭企業: {ticker}")
+
+    # 4. 建立最終的「全景」Prompt
+    mock_philosophy = """
+# 「刀疤老二」交易策略核心：等待、紀律、順勢。只做看得懂的行情，在關鍵支撐壓力位出手。
+# 「交易醫生」核心觀點：重視價量關係，量是價的先行指標，任何沒有量能支撐的突破都值得懷疑。
+# 「善甲狼」投資哲學：重視產業趨勢與龍頭公司的護城河，相信長期價值。
+# ... (此處省略其他心法) ...
+"""
+    mock_report_content = f"這是 {year}年第{week_num}週 的市場評論。本週市場情緒在中美貿易談判的影響下顯得格外謹慎，科技股表現疲軟，但傳產股有資金流入跡象..."
+
+    final_prompt = f"""
+# ==========================================================
+# --- AI 策略分析任務 (V6 全景分析儀) ---
+# ==========================================================
+
+## 你的角色與背景知識
+你是一位融合了以下市場大師智慧的頂尖量化策略師。你的分析必須同時兼顧宏觀經濟、產業趨勢和個股基本面。
+{mock_philosophy}
+---
+## 本次核心分析標的
+**週報標題:** {MOCK_FILENAME}
+**週報內容:** {mock_report_content}
+---
+## PART 1: 宏觀市場上下文 (每日量化日誌)
+{chr(10).join(macro_context_text)}
+---
+## PART 2: 龍頭企業基本面剖析 (焦點週期間)
+{chr(10).join(deep_dive_texts)}
+---
+## PART 3: 核心焦點分析區 (當週完整小時線數據)
+[註：為保持輸出簡潔，此處僅示意。在 PART 1 的數據中已包含 ^TWII 和 ^GSPC 的詳細小時數據]
+---
+## 你的任務與產出要求
+請嚴格依照你的核心交易哲學，結合以上三個部分的全部資訊，完成以下任務：
+
+1.  **發掘高容錯交易機會**：找出符合你哲學的「波段交易」或「配對交易」機會。你的建議不應追求微秒級的反應速度，而是可以提前數小時甚至一天進行規劃的策略。
+2.  **提供完整策略細節**：包含核心邏輯、關鍵觀測指數/個股、進場時機、以及初步的風險控管想法。
+3.  **提出量化研究方向**：基於本次市場情況，提出 1-2 個值得深入研究的「量化因子」或「模型思路」。
+4.  **提供多時間框架展望**：對未來 **一週、一個月、甚至一季** 的潛在影響與預期。
+"""
+
+    print("\n[步驟 4/4] 成功生成最終要提交給 Gemini 的「全景分析儀」Prompt。")
+    print("\n\n" + "="*25 + "↓↓↓ 最終輸出預覽 ↓↓↓" + "="*25)
+    print(final_prompt)
+    print("="*25 + "↑↑↑ 最終輸出預覽 ↑↑↑" + "="*25)
+    print("\n--- 全景分析儀沙盤推演完成！---")
+
+# --- 執行沙盤推演 ---
+run_panoramic_simulation()

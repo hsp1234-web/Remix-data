@@ -1,0 +1,54 @@
+# 忽略 Python 的編譯檔案和快取
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 忽略套件管理工具的目錄
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# 忽略 IDE 和編輯器的設定檔
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 忽略作業系統產生的檔案
+.DS_Store
+Thumbs.db
+
+# 忽略敏感資訊或本地配置
+config.local.yaml
+*.env
+.env.*
+!.env.example
+
+# 忽略測試相關的覆蓋率報告
+.coverage
+coverage.xml
+htmlcov/
+
+# 忽略 Jupyter Notebook 的檢查點檔案
+.ipynb_checkpoints
+
+# 忽略數據庫檔案 (如果在本機測試)
+*.duckdb
+*.sqlite
+*.db
+
+# 忽略日誌檔案
+*.log
+
+# 忽略 Colab 特有的配置 (如果有的話)
+.config/
+gcsfuse/
+
+# 忽略下載的數據或大型檔案 (如果適用)
+data/
+MarketData/ # 根據 config.yaml 中的路徑，建議忽略
+api_cache.sqlite # 根據 config.yaml 中的路徑，建議忽略
+panoramic_analyzer.duckdb # 根據 Market_Analysis_Runner.ipynb 中的路徑，建議忽略

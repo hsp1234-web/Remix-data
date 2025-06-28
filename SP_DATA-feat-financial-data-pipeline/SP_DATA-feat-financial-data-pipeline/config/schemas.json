@@ -1,0 +1,170 @@
+{
+  "fact_stock_price": {
+    "description": "標準化的每日股價數據模型 (適用於 DuckDB)",
+    "columns": [
+      { "name": "price_date", "type": "DATE", "constraints": "NOT NULL", "description": "價格日期 (YYYY-MM-DD)" },
+      { "name": "security_id", "type": "VARCHAR", "constraints": "NOT NULL", "description": "標準化的股票/證券代碼 (例如：AAPL, 2330.TW)" },
+      { "name": "open_price", "type": "DOUBLE", "description": "開盤價" },
+      { "name": "high_price", "type": "DOUBLE", "description": "最高價" },
+      { "name": "low_price", "type": "DOUBLE", "description": "最低價" },
+      { "name": "close_price", "type": "DOUBLE", "description": "收盤價" },
+      { "name": "adj_close_price", "type": "DOUBLE", "description": "還原權值後的收盤價 (由批次任務計算)" },
+      { "name": "volume", "type": "BIGINT", "description": "成交量" },
+      { "name": "turnover", "type": "DOUBLE", "description": "成交金額 (可選)" },
+      { "name": "source_api", "type": "VARCHAR", "constraints": "NOT NULL", "description": "數據來源的 API 名稱" },
+      { "name": "fetched_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "description": "此記錄從API原始抓取的 UTC 時間戳" },
+      { "name": "last_updated_in_db_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "此記錄在數據庫中最後插入或更新的 UTC 時間戳" }
+    ],
+    "primary_keys": ["price_date", "security_id", "source_api"],
+    "indexes": [
+      {"name": "idx_fsp_security_id", "columns": ["security_id"]},
+      {"name": "idx_fsp_price_date", "columns": ["price_date"]},
+      {"name": "idx_fsp_security_date", "columns": ["security_id", "price_date"]}
+    ]
+  },
+  "fact_financial_statement": {
+    "description": "版本化的財報事實表 (適用於 DuckDB)，記錄財報的歷史版本以確保時間點正確性。",
+    "columns": [
+      { "name": "security_id", "type": "VARCHAR", "constraints": "NOT NULL", "description": "標準化的股票/證券代碼" },
+      { "name": "fiscal_period", "type": "VARCHAR", "constraints": "NOT NULL", "description": "財報所屬期間 (格式: YYYYQX 或 YYYYFY)" },
+      { "name": "announcement_date", "type": "DATE", "constraints": "NOT NULL", "description": "該版本財報的公告日" },
+      { "name": "data_snapshot_date", "type": "DATE", "constraints": "NOT NULL", "description": "我們抓取到這份數據的日期" },
+      { "name": "metric_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "財務指標的標準化名稱 (關聯 dim_financial_metric.canonical_metric_name)" },
+      { "name": "metric_value", "type": "DOUBLE", "description": "該財務指標的數值" },
+      { "name": "currency", "type": "VARCHAR", "description": "財報使用的貨幣單位 (例如：USD, TWD)" },
+      { "name": "source_api", "type": "VARCHAR", "constraints": "NOT NULL", "description": "數據來源的 API 名稱" },
+      { "name": "last_updated_in_db_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "此記錄在數據庫中最後插入或更新的 UTC 時間戳" }
+    ],
+    "primary_keys": ["security_id", "fiscal_period", "announcement_date", "metric_name"],
+    "indexes": [
+      {"name": "idx_ffs_security_period_ann_date", "columns": ["security_id", "fiscal_period", "announcement_date"]},
+      {"name": "idx_ffs_canonical_metric", "columns": ["metric_name"]}
+    ]
+  },
+  "dim_financial_metric": {
+    "description": "財務指標維度表，用於標準化財報中的指標名稱和定義 (適用於 DuckDB)。",
+    "columns": [
+      { "name": "canonical_metric_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "標準化的財務指標唯一名稱 (主鍵)" },
+      { "name": "source_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "原始數據源名稱 (例如 finmind, fmp)" },
+      { "name": "source_metric_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "在原始數據源中的指標名稱" },
+      { "name": "metric_description", "type": "VARCHAR", "description": "指標的詳細描述" },
+      { "name": "last_updated_in_db_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL" }
+    ],
+    "primary_keys": ["canonical_metric_name"],
+    "unique_constraints": [
+      {"name": "uq_dfm_source_metric", "columns": ["source_name", "source_metric_name"]}
+    ]
+  },
+  "fact_derived_factors": {
+    "description": "衍生因子事實表，存儲由原始數據計算得出的分析因子 (適用於 DuckDB)。",
+    "columns": [
+      { "name": "price_date", "type": "DATE", "constraints": "NOT NULL", "description": "因子計算的日期" },
+      { "name": "security_id", "type": "VARCHAR", "constraints": "NOT NULL", "description": "標準化的股票/證券代碼" },
+      { "name": "factor_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "因子的唯一名稱 (例如 ma5, rsi14)" },
+      { "name": "factor_value", "type": "DOUBLE", "description": "因子的數值" },
+      { "name": "calculation_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "因子計算完成的 UTC 時間戳" }
+    ],
+    "primary_keys": ["price_date", "security_id", "factor_name"],
+    "indexes": [
+      {"name": "idx_fdf_factor_name", "columns": ["factor_name"]}
+    ]
+  },
+  "job_log": {
+    "description": "任務日誌表，記錄數據填充和計算任務的執行情況 (適用於 DuckDB)。",
+    "columns": [
+      { "name": "job_id", "type": "UUID", "constraints": "NOT NULL", "description": "任務的全局唯一ID (主鍵)" },
+      { "name": "job_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "任務的名稱 (例如 populate_stock_price, calculate_factors)" },
+      { "name": "target_id", "type": "VARCHAR", "description": "任務目標的標識 (例如股票代碼 '2330.TW', 或 'ALL')" },
+      { "name": "parameters_hash", "type": "VARCHAR", "description": "唯一標識任務執行參數的哈希值" },
+      { "name": "status", "type": "VARCHAR", "constraints": "NOT NULL", "description": "任務狀態 (PENDING, RUNNING, SUCCESS, FAILED)" },
+      { "name": "last_run_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "任務本次開始運行的 UTC 時間戳" },
+      { "name": "last_success_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "description": "任務上次成功完成的 UTC 時間戳 (可為 NULL)" },
+      { "name": "completion_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "description": "任務本次完成 (無論成功或失敗) 的 UTC 時間戳 (可為 NULL)"},
+      { "name": "run_count", "type": "BIGINT", "constraints": "NOT NULL DEFAULT 1", "description": "任務嘗試運行的次數" },
+      { "name": "error_message", "type": "VARCHAR", "description": "如果任務失敗，記錄錯誤信息 (可為 NULL)" },
+      { "name": "log_details_path", "type": "VARCHAR", "description": "指向更詳細日誌文件或位置的路徑 (可選)"}
+    ],
+    "primary_keys": ["job_id"],
+    "unique_constraints": [
+      {"name": "uq_job_signature", "columns": ["job_name", "target_id", "parameters_hash"]}
+    ],
+    "indexes": [
+      {"name": "idx_job_log_status_timestamp", "columns": ["status", "last_run_timestamp"]},
+      {"name": "idx_job_log_job_name_target", "columns": ["job_name", "target_id"]}
+    ]
+  },
+  "fact_macro_economic_data": {
+    "description": "標準化的宏觀經濟指標數據 (適用於 DuckDB)",
+    "columns": [
+      { "name": "metric_date", "type": "DATE", "constraints": "NOT NULL", "description": "指標數據的日期" },
+      { "name": "metric_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "指標的全局唯一 ID (例如: FRED/FEDFUNDS)" },
+      { "name": "metric_value", "type": "DOUBLE", "description": "指標的數值" },
+      { "name": "source_api", "type": "VARCHAR", "constraints": "NOT NULL", "description": "數據來源 API" },
+      { "name": "last_updated_in_db_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "記錄最後更新的 UTC 時間戳" }
+    ],
+    "primary_keys": ["metric_date", "metric_name", "source_api"],
+    "indexes": [
+      {"name": "idx_fmed_metric_name_date", "columns": ["metric_name", "metric_date"]}
+    ]
+  },
+  "ai_historical_judgments": {
+    "description": "AI 在每個歷史時間點的完整決策過程 (適用於 DuckDB)",
+    "columns": [
+      { "name": "simulation_run_id", "type": "UUID", "constraints": "NOT NULL", "description": "單次完整模擬運行的唯一ID"},
+      { "name": "simulation_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "模擬的歷史時間點 (UTC)" },
+      { "name": "market_briefing_text_hash", "type": "VARCHAR", "description": "提供給 AI 的市場簡報文本的哈希值"},
+      { "name": "ai_model_name_used", "type": "VARCHAR", "constraints": "NOT NULL", "description": "本次分析使用的本地 LLM 名稱" },
+      { "name": "ai_system_prompt_version", "type": "VARCHAR", "description": "AI系統提示的版本或Hash"},
+      { "name": "ai_request_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "description": "向 AI 發起請求的 UTC 時間戳"},
+      { "name": "ai_response_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "description": "收到 AI 回應的 UTC 時間戳"},
+      { "name": "ai_processing_duration_ms", "type": "BIGINT", "description": "AI 模型處理請求的時長（毫秒）"},
+      { "name": "ai_raw_response_json", "type": "JSON", "constraints": "NOT NULL", "description": "AI 模型返回的完整、未經處理的 JSON 文本" },
+      { "name": "extracted_strategy_json", "type": "JSON", "description": "從回應中解析出的結構化交易策略" },
+      { "name": "extracted_factors_json", "type": "JSON", "description": "促成該策略的關鍵投資因子列表" },
+      { "name": "confidence_score", "type": "DOUBLE", "description": "AI 對其策略的信心評分"},
+      { "name": "status", "type": "VARCHAR", "description": "此條記錄的處理狀態 (SUCCESS, ERROR_DATA, ERROR_AI)"},
+      { "name": "error_message", "type": "VARCHAR", "description": "錯誤信息"},
+      { "name": "db_inserted_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "記錄插入數據庫的 UTC 時間戳" }
+    ],
+    "primary_keys": ["simulation_run_id", "simulation_timestamp"],
+    "indexes": [
+      {"name": "idx_aihj_sim_run_id", "columns": ["simulation_run_id"]},
+      {"name": "idx_aihj_model_confidence", "columns": ["ai_model_name_used", "confidence_score"]}
+    ]
+  },
+  "fact_tw_chip_data": {
+    "description": "台灣股市籌碼面數據 (適用於 DuckDB)，採用長格式設計。",
+    "columns": [
+      { "name": "transaction_date", "type": "DATE", "constraints": "NOT NULL", "description": "交易日期或數據對應日期" },
+      { "name": "security_id", "type": "VARCHAR", "constraints": "NOT NULL", "description": "股票代碼" },
+      { "name": "metric_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "籌碼指標的標準化名稱" },
+      { "name": "metric_sub_category", "type": "VARCHAR", "constraints": "NOT NULL DEFAULT ''", "description": "指標子類別 (例如三大法人中的外資、投信、自營商)，無子類別時為空字串" },
+      { "name": "metric_value", "type": "DOUBLE", "description": "指標數值" },
+      { "name": "source_api", "type": "VARCHAR", "constraints": "NOT NULL", "description": "數據來源 API (固定為 finmind)" },
+      { "name": "last_updated_in_db_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "記錄在數據庫中最後插入或更新的 UTC 時間戳" }
+    ],
+    "primary_keys": ["transaction_date", "security_id", "metric_name", "source_api", "metric_sub_category"],
+    "indexes": [
+      {"name": "idx_ftcd_security_date", "columns": ["security_id", "transaction_date"]},
+      {"name": "idx_ftcd_metric_subcat_date", "columns": ["metric_name", "metric_sub_category", "transaction_date"]}
+    ]
+  },
+  "fact_tw_event_data": {
+    "description": "台灣市場事件與營運數據表 (適用於 DuckDB)，例如除權除息、月營收。",
+    "columns": [
+        { "name": "event_date", "type": "DATE", "constraints": "NOT NULL", "description": "事件日期或數據對應月份的日期" },
+        { "name": "security_id", "type": "VARCHAR", "constraints": "NOT NULL", "description": "股票代碼" },
+        { "name": "event_type", "type": "VARCHAR", "constraints": "NOT NULL", "description": "事件類型 (例如 'monthly_revenue', 'cash_dividend', 'stock_dividend')" },
+        { "name": "metric_name", "type": "VARCHAR", "constraints": "NOT NULL", "description": "指標的標準化名稱" },
+        { "name": "metric_value_numeric", "type": "DOUBLE", "description": "指標的數值 (如果適用)" },
+        { "name": "metric_value_text", "type": "VARCHAR", "description": "指標的文本值 (如果適用)" },
+        { "name": "currency", "type": "VARCHAR", "description": "貨幣單位 (例如 'TWD', 如果適用)" },
+        { "name": "source_api", "type": "VARCHAR", "constraints": "NOT NULL", "description": "數據來源 API (例如 'finmind')" },
+        { "name": "last_updated_in_db_timestamp", "type": "TIMESTAMP WITH TIME ZONE", "constraints": "NOT NULL", "description": "記錄在數據庫中最後插入或更新的 UTC 時間戳" }
+    ],
+    "primary_keys": ["event_date", "security_id", "event_type", "metric_name", "source_api"],
+    "indexes": [
+        {"name": "idx_fted_security_event_date", "columns": ["security_id", "event_date", "event_type"]}
+    ]
+  }
+}

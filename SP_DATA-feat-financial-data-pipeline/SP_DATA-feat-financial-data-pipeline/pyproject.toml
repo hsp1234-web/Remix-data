@@ -1,0 +1,34 @@
+# pyproject.toml
+# 此檔案用於專案依賴管理，目前可為空。
+# 未來可以使用 Poetry 或其他工具來管理專案的依賴。
+
+[tool.poetry]
+name = "taifex-pipeline"
+version = "0.1.0"
+description = "智能型期交所數據整合管道"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+python-json-logger = "^2.0.7"
+pytz = "^2023.3.post1"
+duckdb = "0.9.2" # 固定版本
+requests = "^2.31.0" # 新增 requests 作為主要依賴
+PyYAML = "^6.0.1" # 新增 PyYAML 用於解析 config.yaml
+pandas = "^2.0.0" # 許多 Connector 和 DataMaster 都會用到
+openpyxl = "^3.1.0" # NYFedConnector 解析 Excel 需要
+beautifulsoup4 = "^4.12.0" # NYFedConnector 解析 HTML 需要
+yfinance = "^0.2.30" # YFinanceConnector 需要
+fredapi = "^0.5.0" # FredConnector 需要
+FinMind = "1.8.1" # FinMindConnector 需要 (固定版本以匹配之前的討論)
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-mock = "^3.11.1"
+pytest-cov = ">=2.12.1,<7.0.0" # 新增 pytest-cov 並指定兼容 Python 3.8 的版本範圍
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

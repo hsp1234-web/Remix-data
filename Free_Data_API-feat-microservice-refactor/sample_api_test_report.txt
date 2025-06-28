@@ -1,0 +1,84 @@
+測試執行總時間: 2024-07-15 10:30:00
+
+=== yfinance API 測試報告 (時間週期降級與歷史數據) ===
+測試時間: 2024-07-15 10:30:05
+
+yfinance 主要通過 yf.Ticker('SYMBOL') 對象獲取數據。
+  - .info: 公司基本資料 (字典)。
+  - .history(period, interval, start, end): OHLCV歷史數據 (Pandas DataFrame)。
+  - 返回數據格式: Pandas DataFrame (針對 .history()), dict (針對 .info)。
+
+--- 對 '^TWII' (台灣加權指數) 進行時間週期降級測試 ---
+  嘗試查詢年份: 1990
+    嘗試 interval: '1m', 日期範圍: 1990-01-01 to 1990-01-07
+      錯誤: Exception - 通常表示1m數據在該日期範圍或對此標的不可用
+    嘗試 interval: '5m', 日期範圍: 1990-01-01 to 1990-03-01
+      錯誤: Exception - 同上
+    嘗試 interval: '1h', 日期範圍: 1990-01-01 to 1990-03-01
+      失敗: 返回空的 DataFrame。
+    嘗試 interval: '1d', 日期範圍: 1990-01-01 to 1990-12-31
+      成功: 獲取到 200+ 條數據。(此處為示意，實際數量不定)
+        最早: 1990-XX-XX, 最新: 1990-XX-XX
+      由於在 1d 週期已獲取到 1990 年數據，停止對此年份更粗週期的嘗試。
+  結論: 對 ^TWII 在1990年的測試，通過降級在 '1d' 週期成功獲取數據。
+
+--- 其他 yfinance 代號日線歷史數據長度測試 (period='max') ---
+  測試代號: AAPL (蘋果公司)
+    成功獲取 XXXX 條日線數據。
+    歷史範圍: YYYY-MM-DD 至 YYYY-MM-DD
+
+--- yfinance API 測試總結 (歷史與降級) ---
+  - 分鐘線和小時線對早期歷史數據 (如1990年) 基本不可用。
+  - 日線數據的歷史長度因代號而異。
+  - 降級策略能有效找到可用的最低頻率數據。
+
+=== yfinance 速率限制與緩解機制實測 ===
+測試時間: 2024-07-15 10:31:00
+
+  將使用以下 5 個股票代號進行測試: MSFT, AAPL, GOOG, TSLA, NVDA
+  (原始調用循環間延遲: 0.1秒, 穩定調用循環間延遲: 0.2秒)
+
+  測試 1: 直接、快速調用 yf.Ticker().info (無外部緩解)
+    - 在請求 'TSLA' (第4個) 時遇到錯誤: HTTPError - (示例錯誤)
+    直接調用結果: 3 成功, 2 失敗。耗時: 1.52 秒。
+    原始調用錯誤統計: {'HTTPError': 2}
+
+  測試 2: 使用 market_data_yfinance.fetch_yfinance_data_stable 獲取短週期歷史數據
+    使用 fetch_yfinance_data_stable 結果: 5 成功, 0 失敗。耗時: 8.30 秒。(因包含重試和延遲)
+    (注意: fetch_yfinance_data_stable 包含快取和重試機制。)
+
+  yfinance 速率限制與緩解機制測試總結:
+  - 直接調用易受限，帶緩解機制的封裝函式成功率更高。
+
+=== FRED API 測試報告 ===
+測試時間: 2024-07-15 10:31:15
+FRED_API_KEY loaded: Yes (假設)
+
+  連通性測試:
+    成功從 FRED 獲取 'UNRATE' 序列。最新值 (YYYY-MM-DD): X.X
+    FRED API 連通性測試成功。
+
+  可查詢數據列表/範圍探索:
+    FRED API 探索：嘗試搜索 'gdp' 相關系列...
+      找到 X 個關於 'gdp' 的系列...
+
+  時間週期支援與歷史數據長度探索:
+    測試序列: DGS10 (...)
+      頻率: Daily, 歷史數據始於: YYYY-MM-DD
+    FRED API 的時間週期由數據系列本身定義。
+
+  API 返回格式:
+    fredapi 套件返回 Pandas Series/DataFrame。
+
+=== Alpha Vantage API 測試報告 ===
+測試時間: 2024-07-15 10:31:30
+ALPHA_VANTAGE_API_KEY loaded: Yes (假設)
+  連通性測試: 成功獲取 'IBM' 日線數據...
+  時間週期與歷史長度: 日線約20年，內日數據有限...
+  速率限制觀察: 連續請求6次 Global Quote，在第X次遇到 ValueError (call frequency)...
+
+...(其他 API 的簡化報告條目)...
+
+API 深度測試執行完畢總結
+測試報告生成完畢。
+請確保您的 .env 檔案已正確配置在專案根目錄下，並包含了所需的 API 金鑰。

@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "finmind-fix-validation"
+version = "0.1.0"
+description = "A project to fix and validate the FinMind connector."
+authors = ["Jules <ai-engineer@example.com>"]
+packages = [{include = "connectors", from = "."}]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+pandas = "^2.2.0"
+finmind = "^1.8.1"
+pytest = "^8.0.0"
+tqdm = "^4.66.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,220 @@
+2025-06-26 00:05:34,207 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] GlobalLogSetup - initialize_global_log.initialize_log_file:134 - Global logger initialized. Log file: /app/api_test_logs/2025-06-26T000534Z_application_log.txt
+2025-06-26 00:05:34,207 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] MainApp.Setup - initialize_global_log.log_message:190 - main.py: Global application logger (from initialize_global_log) explicitly initialized. Log file: /app/api_test_logs/2025-06-26T000534Z_application_log.txt
+2025-06-26 00:05:34,207 (Taipei: 2025-06-26 08:05:34 UTC+0000) [WARNING] MainApp.InitCheck - initialize_global_log.log_message:190 - Global application log file path from module was not set. Bootstrap logger might be active for app logs.
+2025-06-26 00:05:34,207 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] MainApp.Setup - initialize_global_log.log_message:190 - Detailed execution transcript for this run will ALSO be saved to: /app/market_briefing_log.txt
+2025-06-26 00:05:34,208 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - --- 開始執行端到端金融數據處理原型 (Atomic Script Version) ---
+2025-06-26 00:05:34,208 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] MainApp.ConfigLoader - initialize_global_log.log_message:190 - Loading project configuration from: /app/src/configs/project_config.yaml
+2025-06-26 00:05:34,215 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] MainApp.ConfigLoader - initialize_global_log.log_message:190 - Project configuration loaded successfully from /app/src/configs/project_config.yaml.
+2025-06-26 00:05:34,216 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Data fetch range: Start='2020-01-01', End='2025-06-26'.
+2025-06-26 00:05:34,216 (Taipei: 2025-06-26 08:05:34 UTC+0000) [DEBUG] MainApp.main_flow - initialize_global_log.log_message:190 - Temporarily set environment variable 'FRED_API_KEY' for FRED API access.
+2025-06-26 00:05:34,216 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.__init__:35 - DatabaseManager initialized. DB file target: /app/data/financial_data.duckdb
+2025-06-26 00:05:34,234 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.connect:53 - Successfully connected to DuckDB database: /app/data/financial_data.duckdb
+2025-06-26 00:05:34,236 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:93 - Table 'fact_macro_economic_data' checked/created.
+2025-06-26 00:05:34,236 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:116 - Table 'fact_stock_price' checked/created.
+2025-06-26 00:05:34,237 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 階段 1: 數據獲取 ---
+2025-06-26 00:05:34,237 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.__init__:41 - FredConnector initialized successfully with API key.
+2025-06-26 00:05:34,237 (Taipei: 2025-06-26 08:05:34 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.fetch_data:56 - Fetching FRED data for series_ids: ['DGS10', 'DGS2', 'SOFR', 'VIXCLS', 'WRESBAL'] from 2020-01-01 to 2025-06-26.
+2025-06-26 00:05:34,237 (Taipei: 2025-06-26 08:05:34 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: DGS10
+2025-06-26 00:05:34,690 (Taipei: 2025-06-26 08:05:34 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: DGS10, 1370 rows.
+2025-06-26 00:05:34,691 (Taipei: 2025-06-26 08:05:34 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: DGS2
+2025-06-26 00:05:35,173 (Taipei: 2025-06-26 08:05:35 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: DGS2, 1370 rows.
+2025-06-26 00:05:35,173 (Taipei: 2025-06-26 08:05:35 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: SOFR
+2025-06-26 00:05:35,565 (Taipei: 2025-06-26 08:05:35 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: SOFR, 1368 rows.
+2025-06-26 00:05:35,566 (Taipei: 2025-06-26 08:05:35 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: VIXCLS
+2025-06-26 00:05:35,970 (Taipei: 2025-06-26 08:05:35 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: VIXCLS, 1400 rows.
+2025-06-26 00:05:35,970 (Taipei: 2025-06-26 08:05:35 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: WRESBAL
+2025-06-26 00:05:36,194 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: WRESBAL, 286 rows.
+2025-06-26 00:05:36,195 (Taipei: 2025-06-26 08:05:36 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.fetch_data:102 - Successfully fetched and processed 5794 total records from FRED for series_ids: ['DGS10', 'DGS2', 'SOFR', 'VIXCLS', 'WRESBAL'].
+2025-06-26 00:05:36,195 (Taipei: 2025-06-26 08:05:36 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Fetched 5794 FRED records.
+2025-06-26 00:05:36,196 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:133 - Attempting to bulk insert/replace into fact_macro_economic_data, 5794 rows. Unique cols: ['metric_date', 'metric_name', 'source_api']
+2025-06-26 00:05:36,205 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:179 - Executing SQL (UPSERT style): INSERT INTO fact_macro_economic_data SELECT * FROM temp_fact_macro_economic_data_e3d04f3f ON CONFLICT (metric_date, metric_name, source_api) DO UPDATE SET metric_value = excluded.metric_value, data_snapshot_timestamp = excluded.data_snapshot_timestamp;
+2025-06-26 00:05:36,208 (Taipei: 2025-06-26 08:05:36 UTC+0000) [ERROR] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:186 - Error during bulk insert/replace into fact_macro_economic_data: Binder Error: table fact_macro_economic_data has 8 columns but 5 values were supplied
+Traceback (most recent call last):
+  File "/app/src/database/database_manager.py", line 181, in bulk_insert_or_replace
+    self.conn.execute(sql) # This should be at the same indentation level as the if/else that defines sql
+    ^^^^^^^^^^^^^^^^^^^^^^
+duckdb.duckdb.BinderException: Binder Error: table fact_macro_economic_data has 8 columns but 5 values were supplied
+2025-06-26 00:05:36,215 (Taipei: 2025-06-26 08:05:36 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:80 - Fetching NYFed data from 3 configured URLs.
+2025-06-26 00:05:36,215 (Taipei: 2025-06-26 08:05:36 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:94 - Processing NYFed file: prideal2024.xlsx from URL: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx (format: PD_STATS_FORMAT_2013_ONWARDS)
+2025-06-26 00:05:36,215 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:52 - Attempt 1/3 to download NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx
+2025-06-26 00:05:36,217 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._new_conn:1049 - Starting new HTTPS connection (1): www.newyorkfed.org:443
+2025-06-26 00:05:36,529 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /medialibrary/media/markets/prideal/prideal2024.xlsx HTTP/1.1" 302 None
+2025-06-26 00:05:36,531 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._get_conn:289 - Resetting dropped connection: www.newyorkfed.org
+2025-06-26 00:05:36,707 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /errors/404 HTTP/1.1" 200 16263
+2025-06-26 00:05:36,708 (Taipei: 2025-06-26 08:05:36 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:55 - Successfully downloaded NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx (status 200).
+2025-06-26 00:05:36,823 (Taipei: 2025-06-26 08:05:36 UTC+0000) [ERROR] project_logger.NYFedConnector - nyfed_connector.fetch_data:151 - Error processing Excel prideal2024.xlsx: File is not a zip file
+Traceback (most recent call last):
+  File "/app/src/connectors/nyfed_connector.py", line 106, in fetch_data
+    df = pd.read_excel(excel_file_content, header=header_idx, engine='openpyxl')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 495, in read_excel
+    io = ExcelFile(
+         ^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 1567, in __init__
+    self._reader = self._engines[engine](
+                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_openpyxl.py", line 553, in __init__
+    super().__init__(
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 573, in __init__
+    self.book = self.load_workbook(self.handles.handle, engine_kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_openpyxl.py", line 572, in load_workbook
+    return load_workbook(
+           ^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 346, in load_workbook
+    reader = ExcelReader(filename, read_only, keep_vba,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 123, in __init__
+    self.archive = _validate_archive(fn)
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 95, in _validate_archive
+    archive = ZipFile(filename, 'r')
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/zipfile/__init__.py", line 1354, in __init__
+    self._RealGetContents()
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/zipfile/__init__.py", line 1421, in _RealGetContents
+    raise BadZipFile("File is not a zip file")
+zipfile.BadZipFile: File is not a zip file
+2025-06-26 00:05:36,829 (Taipei: 2025-06-26 08:05:36 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:94 - Processing NYFed file: prideal2023.xlsx from URL: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2023.xlsx (format: PD_STATS_FORMAT_2013_ONWARDS)
+2025-06-26 00:05:36,829 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:52 - Attempt 1/3 to download NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2023.xlsx
+2025-06-26 00:05:36,830 (Taipei: 2025-06-26 08:05:36 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._new_conn:1049 - Starting new HTTPS connection (1): www.newyorkfed.org:443
+2025-06-26 00:05:37,046 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /medialibrary/media/markets/prideal/prideal2023.xlsx HTTP/1.1" 302 None
+2025-06-26 00:05:37,049 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._get_conn:289 - Resetting dropped connection: www.newyorkfed.org
+2025-06-26 00:05:37,198 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /errors/404 HTTP/1.1" 200 16266
+2025-06-26 00:05:37,201 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:55 - Successfully downloaded NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2023.xlsx (status 200).
+2025-06-26 00:05:37,202 (Taipei: 2025-06-26 08:05:37 UTC+0000) [ERROR] project_logger.NYFedConnector - nyfed_connector.fetch_data:151 - Error processing Excel prideal2023.xlsx: File is not a zip file
+Traceback (most recent call last):
+  File "/app/src/connectors/nyfed_connector.py", line 106, in fetch_data
+    df = pd.read_excel(excel_file_content, header=header_idx, engine='openpyxl')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 495, in read_excel
+    io = ExcelFile(
+         ^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 1567, in __init__
+    self._reader = self._engines[engine](
+                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_openpyxl.py", line 553, in __init__
+    super().__init__(
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 573, in __init__
+    self.book = self.load_workbook(self.handles.handle, engine_kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_openpyxl.py", line 572, in load_workbook
+    return load_workbook(
+           ^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 346, in load_workbook
+    reader = ExcelReader(filename, read_only, keep_vba,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 123, in __init__
+    self.archive = _validate_archive(fn)
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 95, in _validate_archive
+    archive = ZipFile(filename, 'r')
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/zipfile/__init__.py", line 1354, in __init__
+    self._RealGetContents()
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/zipfile/__init__.py", line 1421, in _RealGetContents
+    raise BadZipFile("File is not a zip file")
+zipfile.BadZipFile: File is not a zip file
+2025-06-26 00:05:37,203 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:94 - Processing NYFed file: prideal2022.xlsx from URL: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2022.xlsx (format: PD_STATS_FORMAT_2013_ONWARDS)
+2025-06-26 00:05:37,203 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:52 - Attempt 1/3 to download NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2022.xlsx
+2025-06-26 00:05:37,204 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._new_conn:1049 - Starting new HTTPS connection (1): www.newyorkfed.org:443
+2025-06-26 00:05:37,473 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /medialibrary/media/markets/prideal/prideal2022.xlsx HTTP/1.1" 302 None
+2025-06-26 00:05:37,475 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._get_conn:289 - Resetting dropped connection: www.newyorkfed.org
+2025-06-26 00:05:37,561 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /errors/404 HTTP/1.1" 200 16266
+2025-06-26 00:05:37,563 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:55 - Successfully downloaded NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2022.xlsx (status 200).
+2025-06-26 00:05:37,564 (Taipei: 2025-06-26 08:05:37 UTC+0000) [ERROR] project_logger.NYFedConnector - nyfed_connector.fetch_data:151 - Error processing Excel prideal2022.xlsx: File is not a zip file
+Traceback (most recent call last):
+  File "/app/src/connectors/nyfed_connector.py", line 106, in fetch_data
+    df = pd.read_excel(excel_file_content, header=header_idx, engine='openpyxl')
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 495, in read_excel
+    io = ExcelFile(
+         ^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 1567, in __init__
+    self._reader = self._engines[engine](
+                   ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_openpyxl.py", line 553, in __init__
+    super().__init__(
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_base.py", line 573, in __init__
+    self.book = self.load_workbook(self.handles.handle, engine_kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/pandas/io/excel/_openpyxl.py", line 572, in load_workbook
+    return load_workbook(
+           ^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 346, in load_workbook
+    reader = ExcelReader(filename, read_only, keep_vba,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 123, in __init__
+    self.archive = _validate_archive(fn)
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/openpyxl/reader/excel.py", line 95, in _validate_archive
+    archive = ZipFile(filename, 'r')
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/zipfile/__init__.py", line 1354, in __init__
+    self._RealGetContents()
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/zipfile/__init__.py", line 1421, in _RealGetContents
+    raise BadZipFile("File is not a zip file")
+zipfile.BadZipFile: File is not a zip file
+2025-06-26 00:05:37,565 (Taipei: 2025-06-26 08:05:37 UTC+0000) [WARNING] project_logger.NYFedConnector - nyfed_connector.fetch_data:155 - No data from any NYFed files.
+2025-06-26 00:05:37,566 (Taipei: 2025-06-26 08:05:37 UTC+0000) [ERROR] MainApp.main_flow - initialize_global_log.log_message:190 - NYFed Data Fetching Error: No data from NYFed.
+2025-06-26 00:05:37,566 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] project_logger.YFinanceConnector - yfinance_connector.fetch_data:34 - Fetching yfinance data for tickers: ['^MOVE'] from 2020-01-01 to 2025-06-26 with interval 1d.
+2025-06-26 00:05:37,566 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] project_logger.YFinanceConnector - yfinance_connector.fetch_data:51 - Fetching yfinance data for: ^MOVE
+2025-06-26 00:05:37,567 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 - Entering history()
+2025-06-26 00:05:37,569 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] peewee - peewee.execute_sql:3319 - ('CREATE TABLE IF NOT EXISTS "_tz_kv" ("key" VARCHAR(255) NOT NULL PRIMARY KEY, "value" VARCHAR(255)) WITHOUT ROWID', [])
+2025-06-26 00:05:37,569 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] peewee - peewee.execute_sql:3319 - ('SELECT "t1"."key", "t1"."value" FROM "_tz_kv" AS "t1" WHERE ("t1"."key" = ?) LIMIT ? OFFSET ?', ['^MOVE', 1, 0])
+2025-06-26 00:05:37,591 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -  Entering history()
+2025-06-26 00:05:37,594 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - history.history:167 - ^MOVE: Yahoo GET parameters: {'period1': '2020-01-01 00:00:00-05:00', 'period2': '2025-06-26 00:00:00-04:00', 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2025-06-26 00:05:37,594 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -   Entering get()
+2025-06-26 00:05:37,594 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -    Entering _make_request()
+2025-06-26 00:05:37,594 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - data._make_request:383 - url=https://query2.finance.yahoo.com/v8/finance/chart/^MOVE
+2025-06-26 00:05:37,594 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - data._make_request:384 - params={'period1': 1577854800, 'period2': 1750910400, 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2025-06-26 00:05:37,594 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -     Entering _get_cookie_and_crumb()
+2025-06-26 00:05:37,595 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - data._get_cookie_and_crumb:349 - cookie_mode = 'basic'
+2025-06-26 00:05:37,595 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -      Entering _get_cookie_and_crumb_basic()
+2025-06-26 00:05:37,595 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -       Entering _get_cookie_basic()
+2025-06-26 00:05:37,595 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -        Entering _load_cookie_curlCffi()
+2025-06-26 00:05:37,596 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] peewee - peewee.execute_sql:3319 - ('CREATE TABLE IF NOT EXISTS "_cookieschema" ("strategy" VARCHAR(255) NOT NULL PRIMARY KEY, "fetch_date" DATETIME NOT NULL, "cookie_bytes" BLOB NOT NULL) WITHOUT ROWID', [])
+2025-06-26 00:05:37,597 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] peewee - peewee.execute_sql:3319 - ('SELECT "t1"."strategy", "t1"."fetch_date", "t1"."cookie_bytes" FROM "_cookieschema" AS "t1" WHERE ("t1"."strategy" = ?) LIMIT ? OFFSET ?', ['curlCffi', 1, 0])
+2025-06-26 00:05:37,597 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -        Exiting _load_cookie_curlCffi()
+2025-06-26 00:05:37,597 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - data._get_cookie_basic:190 - reusing persistent cookie
+2025-06-26 00:05:37,597 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -       Exiting _get_cookie_basic()
+2025-06-26 00:05:37,597 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -       Entering _get_crumb_basic()
+2025-06-26 00:05:37,597 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -        Entering _get_cookie_basic()
+2025-06-26 00:05:37,598 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - data._get_cookie_basic:187 - reusing cookie
+2025-06-26 00:05:37,598 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -        Exiting _get_cookie_basic()
+2025-06-26 00:05:37,736 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - data._get_crumb_basic:234 - crumb = 'OaGxqWim6vn'
+2025-06-26 00:05:37,737 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -       Exiting _get_crumb_basic()
+2025-06-26 00:05:37,737 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -      Exiting _get_cookie_and_crumb_basic()
+2025-06-26 00:05:37,737 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -     Exiting _get_cookie_and_crumb()
+2025-06-26 00:05:37,853 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - data._make_request:407 - response code=200
+2025-06-26 00:05:37,853 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -    Exiting _make_request()
+2025-06-26 00:05:37,853 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -   Exiting get()
+2025-06-26 00:05:37,865 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - history.history:283 - ^MOVE: yfinance received OHLC data: 2020-01-02 14:30:00 -> 2025-06-25 20:31:30
+2025-06-26 00:05:37,867 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - history.history:320 - ^MOVE: OHLC after cleaning: 2020-01-02 09:30:00-05:00 -> 2025-06-25 16:31:30-04:00
+2025-06-26 00:05:37,874 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - history.history:390 - ^MOVE: OHLC after combining events: 2020-01-02 00:00:00-05:00 -> 2025-06-25 00:00:00-04:00
+2025-06-26 00:05:37,878 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - history.history:469 - ^MOVE: yfinance returning OHLC: 2020-01-02 00:00:00-05:00 -> 2025-06-25 00:00:00-04:00
+2025-06-26 00:05:37,878 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -  Exiting history()
+2025-06-26 00:05:37,878 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 - Exiting history()
+2025-06-26 00:05:37,886 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] project_logger.YFinanceConnector - yfinance_connector.fetch_data:112 - Processed yfinance data for ^MOVE, 1368 rows.
+2025-06-26 00:05:37,889 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] project_logger.YFinanceConnector - yfinance_connector.fetch_data:138 - Successfully fetched and processed 1368 total records from yfinance for tickers: ['^MOVE'].
+2025-06-26 00:05:37,889 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Fetched 1368 YFinance records for ['^MOVE'].
+2025-06-26 00:05:37,889 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:133 - Attempting to bulk insert/replace into fact_stock_price, 1368 rows. Unique cols: ['price_date', 'security_id', 'source_api']
+2025-06-26 00:05:37,900 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:179 - Executing SQL (UPSERT style): INSERT INTO fact_stock_price SELECT * FROM temp_fact_stock_price_25de1da7 ON CONFLICT (price_date, security_id, source_api) DO UPDATE SET open_price = excluded.open_price, high_price = excluded.high_price, low_price = excluded.low_price, close_price = excluded.close_price, adj_close_price = excluded.adj_close_price, volume = excluded.volume, dividends = excluded.dividends, stock_splits = excluded.stock_splits, data_snapshot_timestamp = excluded.data_snapshot_timestamp;
+2025-06-26 00:05:37,903 (Taipei: 2025-06-26 08:05:37 UTC+0000) [ERROR] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:186 - Error during bulk insert/replace into fact_stock_price: Binder Error: table fact_stock_price has 15 columns but 12 values were supplied
+Traceback (most recent call last):
+  File "/app/src/database/database_manager.py", line 181, in bulk_insert_or_replace
+    self.conn.execute(sql) # This should be at the same indentation level as the if/else that defines sql
+    ^^^^^^^^^^^^^^^^^^^^^^
+duckdb.duckdb.BinderException: Binder Error: table fact_stock_price has 15 columns but 12 values were supplied
+2025-06-26 00:05:37,911 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 階段 2 & 3: 指標計算與市場簡報 ---
+2025-06-26 00:05:37,911 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.fetch_all_for_engine:203 - Fetching all data for engine from fact_macro_economic_data, date_col: metric_date, start: 2020-01-01, end: 2025-06-26
+2025-06-26 00:05:37,915 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.fetch_all_for_engine:223 - Successfully fetched 0 rows from fact_macro_economic_data.
+2025-06-26 00:05:37,915 (Taipei: 2025-06-26 08:05:37 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.fetch_all_for_engine:203 - Fetching all data for engine from fact_stock_price, date_col: price_date, start: 2020-01-01, end: 2025-06-26
+2025-06-26 00:05:37,919 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.fetch_all_for_engine:223 - Successfully fetched 0 rows from fact_stock_price.
+2025-06-26 00:05:37,919 (Taipei: 2025-06-26 08:05:37 UTC+0000) [ERROR] MainApp.main_flow - initialize_global_log.log_message:190 - IndicatorEngine: Insufficient data from DB (both macro and stock are empty/None). Skipping stress index calculation.
+2025-06-26 00:05:37,922 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.disconnect:65 - Disconnected from DuckDB database: /app/data/financial_data.duckdb
+2025-06-26 00:05:37,922 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 端到端原型執行完畢 (Atomic Script Version) ---
+2025-06-26 00:05:37,922 (Taipei: 2025-06-26 08:05:37 UTC+0000) [INFO] MainApp.Cleanup - initialize_global_log.log_message:190 - Removing detailed run log handler. Transcript saved to /app/market_briefing_log.txt

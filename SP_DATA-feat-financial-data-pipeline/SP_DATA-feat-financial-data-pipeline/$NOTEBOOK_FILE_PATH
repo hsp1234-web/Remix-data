@@ -1,0 +1,40 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "collapsed_sections": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python",
+      "version": "3.x"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "colab_cell_1_setup_params"
+      },
+      "source": "# 🚀 數據整合平台 v15 - Colab 執行器\n---和平的分割線---說明文字---和平的分割線---\n歡迎使用數據整合平台 v15 的 Google Colab 執行介面！本筆記本將引導您完成執行前的所有必要設定，並啟動主處理流程。\n\n**主要步驟：**\n1.  **參數設定**：請在下方的表單中，填寫或選擇您的專案名稱、執行模式及資料衝突處理策略。\n2.  **環境準備**：設定完成後，此儲存格會自動：\n    *   從 GitHub 下載最新的 `main.py` 主執行腳本。\n    *   提示您授權並掛載您的 Google Drive，以便存取輸入檔案與儲存結果。\n3.  **執行管道**：請執行下一個「程式碼儲存格」，它將使用您在此處的設定來啟動數據處理管道。\n---和平的分割線---參數設定---和平的分割線---\n## 📝 第一步：執行參數設定\n請在下方填寫您的專案執行參數：\n\n#@title 核心執行參數設定 { display-mode: \"form\" }\n#@markdown 請在此處完成所有執行設定。設定完成後，**請務必執行此儲存格** (可點擊左側的播放按鈕 ▶️ 或使用 Shift+Enter)。\nproject_name = \"MyTaifexDataProject_v15\" #@param {type:\"string\"}\nrun_mode = \"NORMAL\" #@param [\"NORMAL\", \"BACKFILL\"]\nconflict_strategy = \"REPLACE\" #@param [\"REPLACE\", \"IGNORE\"]\n#@markdown --- \nmain_py_github_url = \"https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/data_pipeline_v15/main.py\" #@param {type:\"string\"} \n#@markdown ☝️ **重要提示**：請將上方 `main_py_github_url` 中的 `YOUR_USERNAME/YOUR_REPO/main` 替換成您 `main.py` 實際所在的 GitHub Raw 連結路徑 (應指向 `data_pipeline_v15/main.py`)。\n\nprint(f\"{'='*30} 參數設定預覽 {'='*30}\")\nprint(f\"- 專案名稱 (project_name): {project_name}\")\nprint(f\"- 執行模式 (run_mode): {run_mode}\")\nprint(f\"- 衝突處理策略 (conflict_strategy): {conflict_strategy}\")\nprint(f\"- main.py 下載網址: {main_py_github_url}\")\nprint(f\"{'='*75}\")\n\n```python\n# --- 環境準備與 main.py 下載 --- \nimport os\nimport requests # Ensure this is available in Colab (it is by default)\nfrom google.colab import drive\n\nMAIN_PY_TARGET_PATH = \"/content/main.py\"\n\ndef download_main_py(url, target_path):\n    print(f\"[INFO] 正在從 {url} 下載 main.py ...\")\n    try:\n        response = requests.get(url)\n        response.raise_for_status()\n        with open(target_path, 'wb') as f:\n            f.write(response.content)\n        print(f\"[SUCCESS] main.py 已成功下載至 {target_path}\")\n        return True\n    except requests.exceptions.RequestException as e:\n        print(f\"[ERROR] 下載 main.py 失敗: {e}\")\n        print(f\"[ERROR] 請檢查 main_py_github_url 是否正確，並確保 Colab 可以存取該網址。\")\n        return False\n\ndef mount_google_drive():\n    print(f\"[INFO] 正在掛載 Google Drive 至 /content/drive ...\")\n    try:\n        drive.mount('/content/drive', force_remount=True)\n        print(f\"[SUCCESS] Google Drive 已成功掛載。\")\n        return True\n    except Exception as e:\n        print(f\"[ERROR] 掛載 Google Drive 失敗: {e}\")\n        return False\n\nif not main_py_github_url or 'YOUR_USERNAME/YOUR_REPO' in main_py_github_url:\n    print(\"[WARNING] main_py_github_url 尚未設定或仍為預設佔位符。請務必修改後再執行此儲存格。\")\nelse:\n    download_successful = download_main_py(main_py_github_url, MAIN_PY_TARGET_PATH)\n    if not download_successful:\n        print(\"[STOP] 因 main.py 下載失敗，後續步驟可能無法執行。\")\n\ndrive_mounted = mount_google_drive()\nif drive_mounted:\n    gdrive_project_input_path = f\"/content/drive/MyDrive/{project_name}/01_input_files\"\n    print(f\"{'='*75}\")\n    print(f\"[INFO] **重要路徑提示**:\")\n    print(f\"      如果您希望管道處理 Google Drive 中的檔案，並讓 main.py 自動建立工作區於 Drive:\")\n    print(f\"      請在下一個儲存格執行 main.py 時，設定 --workspace_path 參數指向您的 Google Drive，例如：\")\n    print(f\"      `--workspace_path /content/drive/MyDrive/{project_name}_colab_workspace`\")\n    print(f\"      然後，將您的輸入檔案放置於該工作區下的 `01_input_files` 子目錄，即：\")\n    print(f\"      `/content/drive/MyDrive/{project_name}_colab_workspace/01_input_files/`\")\n    print(f\"      如果未指定 --workspace_path，main.py 預設會在 Colab 本地 (/content/) 建立名為 '{project_name}_workspace_v15' 的工作區。\")\n    print(f\"{'='*75}\")\nelse:\n    print(\"[WARNING] Google Drive 未成功掛載，如果您的數據源在 Drive 上，管道執行可能會失敗。\")\n\nprint(\"[INFO] 設定與環境準備儲存格執行完畢。如果一切順利，請執行下一個儲存格以啟動管道。\")\n```"
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "colab_cell_2_execute_pipeline",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": ""
+      },
+      "source": "#@title 🚀 第二步：執行數據整合管道\n#@markdown --- \n#@markdown 👇 **點擊左側的播放按鈕 ▶️ 或使用 Shift+Enter 來執行此儲存格。**\n#@markdown \n#@markdown 這將會呼叫已下載的 `main.py` 腳本，並使用您在第一個儲存格設定的參數。\n#@markdown \n#@markdown **進階設定 - 工作區路徑 (`--workspace_path`)**：\n#@markdown *   預設情況下 (即下方命令未修改時)，`main.py` 會在 Colab 的本地環境 (`/content/`) 中建立一個名為 `{project_name}_workspace_v15` 的工作區。\n#@markdown *   如果您希望指定一個不同的工作區路徑 (例如，在您已掛載的 Google Drive 上)，\n#@markdown     您可以**手動修改下方命令**中的 `--workspace_path` 參數。\n#@markdown     例如，改為：`!python /content/main.py --project_name \"{project_name}\" ... --workspace_path \"/content/drive/MyDrive/MyCustomWorkspace\"`\n#@markdown     (請確保該 Drive 路徑存在且 Colab 有權限存取。)\n\n# print(f\"[INFO] workspace_path for main.py will use its internal default if not specified below.\")\n# print(f\"[INFO] Default is typically /content/{project_name}_workspace_v15 in Colab.\")\n# print(f\"[INFO] To use a Google Drive path, uncomment and edit the --workspace_path example in the command below.\")\n\nprint(f\"{'='*30} 開始執行 main.py {'='*30}\")\nprint(f\"使用參數：\")\nprint(f\"  --project_name: {project_name}\")\nprint(f\"  --run_mode: {run_mode}\")\nprint(f\"  --conflict_strategy: {conflict_strategy}\")\nprint(\"  --workspace_path: [未在此處明確設定，main.py 將使用其預設邏輯或您手動添加的下方參數]\")\nprint(f\"{'='*78}\")\n\n# 執行 main.py 腳本\n# 提示: 如果要指定 workspace_path,請取消下面這行的註解,並修改路徑\n# workspace_arg = f'--workspace_path \"/content/drive/MyDrive/{project_name}_workspace\"' # 範例: Google Drive 路徑\nworkspace_arg = \"\" # 預設不傳遞 workspace_path,讓 main.py 使用其預設邏輯\n\n!python /content/main.py --project_name \"{project_name}\" --run_mode \"{run_mode}\" --conflict_strategy \"{conflict_strategy}\" {workspace_arg}\n",
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}

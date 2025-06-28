@@ -1,0 +1,10 @@
+2025-06-26 12:20:14 [BashDiagnose] - Cleared old report file: /app/logs/nyfed_diagnosis_bash_report.txt
+2025-06-26 12:20:14 [BashDiagnose] - 開始執行 NYFed Connector 診斷...
+2025-06-26 12:20:14 [BashDiagnose] - 專案根目錄 (PROJECT_ROOT) 被設定為: /app
+2025-06-26 12:20:14 [BashDiagnose] - Python 診斷腳本的預期完整路徑: /app/scripts/diagnose_nyfed_logic.py
+2025-06-26 12:20:14 [BashDiagnose] - 此 Bash 腳本的報告將輸出到: /app/logs/nyfed_diagnosis_bash_report.txt
+2025-06-26 12:20:14 [BashDiagnose] - Python 腳本的詳細日誌將輸出到: /app/logs/nyfed_diagnosis_detail.log
+2025-06-26 12:20:14 [BashDiagnose] - (如果 Python 腳本成功執行，它會自行清理舊的 /app/logs/nyfed_diagnosis_detail.log)
+2025-06-26 12:20:14 [BashDiagnose] - INFO: (diagnose_nyfed.sh) Bypassing pip install in Bash script. Python script will handle dependencies.
+2025-06-26 12:20:14 [BashDiagnose] - 執行 Python 診斷腳本 (diagnose_nyfed_logic.py)...
+2025-06-26 12:20:14 [BashDiagnose] - 檢測到 Poetry 和 pyproject.toml，將使用 'poetry run python3 ...' 執行。

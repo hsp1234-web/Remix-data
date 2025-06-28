@@ -1,0 +1,129 @@
+# 全景市場分析儀 - 項目設定檔 (project_config.yaml)
+
+# --- 基本項目信息 ---
+project_name: "全景市場分析儀"
+version: "2.0.0-dev" # V2.0 開發中
+guideline_version: "3.4.x-zh-fc" # 遵循的設計準則版本
+
+# --- 日誌與環境設定 ---
+log_level: "INFO" # 可選: DEBUG, INFO, WARNING, ERROR, CRITICAL
+timezone: "Asia/Taipei"
+user_agent: "PanoramicMarketAnalyzer/2.0 (+http://your-project-url-if-any.com)"
+
+# --- API 金鑰環境變數名稱 ---
+# 實際的 API Key 應儲存在 .env 檔案中，這裡只定義環境變數的名稱
+api_keys_env_vars:
+  fred: "FRED_API_KEY"
+  alpha_vantage: "ALPHA_VANTAGE_API_KEY"
+  # finnhub: "FINNHUB_API_KEY" # 示例，根據實際使用情況添加
+  # news_api: "NEWS_API_KEY"
+  # fmp: "FMP_API_KEY"
+  # polygon: "POLYGON_API_KEY"
+
+# --- 數據獲取相關設定 ---
+data_fetching:
+  # 統一 API 請求器的設定
+  unified_api_fetcher:
+    cache_dir: "CACHE_Market_Data" # API 請求級快取目錄
+    cache_expire_after_hours: 24   # API 快取有效時間（小時）
+    default_retry_attempts: 3      # 預設重試次數
+    default_retry_delay_seconds: 5 # 預設重試延遲（秒）
+
+  # 各數據源的特定配置 (將在 api_endpoints.yaml 中更詳細定義)
+  # 此處可放置一些全局性的數據源層面參數
+
+  # 台指期貨連續合約構建參數 (如果需要可配置)
+  # taifex_futures:
+  #   rollover_day_of_week: "Wednesday" # 結算參照星期三
+  #   rollover_week_of_month: 3        # 每月第3周
+
+# --- 市場風險模型 (Dealer Stress Index V2.0) 設定 ---
+stress_index_v2:
+  # 指標計算窗口期
+  rolling_window_days: 252 # 約一年交易日
+  min_periods_for_ranking: 126 # 計算百分位排名所需的最少期數 (例如，窗口期的一半)
+
+  # 指標方向性 (1 表示原始值越大壓力越大, -1 表示原始值越小壓力越大)
+  indicator_pressure_direction:
+    SOFR_Dev: 1
+    Spread_10Y2Y: -1 # 利差收窄/倒掛壓力大，所以原始值越小，1-rank_pct 越大
+    Spread_3m10y: -1 # 同上
+    Dealer_GrossPosition_Rank: 1 # 假設頭寸越高，潛在風險/槓桿越高
+    Dealer_NetPosition_Rank: 1   # 假設淨頭寸絕對值越大，方向性風險越高 (需進一步定義如何處理正負)
+    MOVE_RealizedVol_Rank: 1
+    VIX_Rank: 1
+    Pos_Res_Ratio_Rank: 1
+    FRAOIS_Rank: 1
+    TEDRATE_Rank: 1
+    SOFR_Vol_Rank: 1
+
+  # PCA 權重分配設定
+  pca_weights:
+    enabled: true
+    variance_explained_threshold: 0.80 # 保留能夠解釋至少80%總方差的主成分
+    eigenvalue_threshold: 1.0          # 凱撒準則：特徵值大於1
+    recalculation_frequency_days: 180  # PCA權重重新計算頻率（例如每半年）
+
+  # 動態權重探索設定 (初步，可擴展)
+  dynamic_weights:
+    enabled: false # 初期可以先設為 false
+    # HMM 模型參數 (如果使用 HMM 劃分市場狀態)
+    # hmm_params:
+    #   n_states: 2 # 例如：低壓/趨勢市，高壓/避險市
+    #   observed_variables: ['VIX_Rank', 'SP500_RealizedVol_Rank', 'BAMLH0A0HYM2_Rank'] # 示例
+    # regime_weights: # 不同狀態下的權重方案
+    #   low_stress:
+    #     # ... 權重 ...
+    #   high_stress:
+    #     # ... 權重 ...
+
+  # 指數平滑設定
+  smoothing_window_stress_index: 5 # 壓力指數的移動平均窗口期 (天)
+  smoothing_method: "EMA"          # 平滑方法，可選 'SMA' (簡單移動平均) 或 'EMA' (指數移動平均)
+
+  # 指數標定與解讀閾值 (基於歷史回測結果設定)
+  stress_thresholds:
+    moderate_stress_start: 50
+    high_stress_start: 70
+    extreme_stress_start: 85
+
+  # 持有量/準備金比率的條件權重閾值 (如果保留此邏輯)
+  # pos_res_ratio_conditional_threshold: 90 # 已考慮在指標方向性或模型中處理
+
+  # MACD 指標計算設定 (用於壓力指數的動能)
+  enable_macd_momentum: true
+  macd_params:
+    fast: 12
+    slow: 26
+    signal: 9
+  macd_colors:
+    blue: "#6495ED"
+    green: "#3CB371"
+    red: "#B22222"
+
+# --- Prompt 工程相關設定 ---
+prompt_engineering:
+  llm_model_preference: "gpt-4-turbo" # 偏好的LLM模型
+  output_prompt_dir: "OUT_Processed_Prompts"
+  # Prompt 模板文件的路徑 (如果使用外部模板)
+  # prompt_template_path: "config/prompt_template.json"
+
+# --- 回溯測試框架設定 ---
+backtesting:
+  historical_crisis_events_path: "config/crisis_events.yaml" # 歷史危機事件標註文件
+  # 評估指標等...
+
+# --- 數據驗證 (DQ) 框架設定 ---
+# dq_rules_path: "config/dq_rules.yaml" # 已決定在 DataValidator 中直接加載
+
+# --- 其他可能的設定 ---
+# 例如，繪圖相關的預設參數
+# plotting:
+#   default_chart_days: 252
+#   stress_gauge_thresholds: [60, 80] # 與 stress_thresholds 可能有重疊
+#   trend_plot_days_default: 60
+
+# --- 實驗性功能開關 ---
+# experimental_features:
+#   enable_alternative_data_module: false
+#   enable_nlp_sentiment_module: false

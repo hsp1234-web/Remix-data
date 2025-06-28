@@ -1,0 +1,30 @@
+# 系統組態設定檔
+
+# 數據獲取器穩健性參數
+fetcher_robustness:
+  retries: 3           # 最大重試次數
+  backoff_factor: 1    # 指數退避因子 (e.g., 1s, 2s, 4s...)
+  delay_min_seconds: 0.5 # 請求間最小延遲
+  delay_max_seconds: 1.5 # 請求間最大延遲 (加入抖動)
+
+# 數據源設定
+data_sources:
+  equity: yfinance       # 股票/ETF 的主要來源
+  macro: fred            # 宏觀經濟數據的主要來源
+  crypto: coingecko      # 加密貨幣的主要來源
+
+# 數據庫設定
+database:
+  type: 'duckdb'
+  # 路徑應在 Colab 中動態設定，指向 Google Drive
+  path: '/content/drive/MyDrive/MarketData/market_data.duckdb'
+
+# 快取設定
+cache:
+  # 路徑應在 Colab 中動態設定，指向 Google Drive
+  path: '/content/drive/MyDrive/MarketData/api_cache.sqlite'
+  expire_after_days: 1 # 快取有效天數
+
+# 並行處理設定
+concurrency:
+  max_workers: 10      # 用於 I/O 密集型任務 (如 API 下載)

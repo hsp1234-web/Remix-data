@@ -1,0 +1,104 @@
+# 數據驗證 (DQ) 規則設定檔 (dq_rules.yaml)
+
+# 本文件定義了對不同數據指標執行的數據質量驗證規則。
+# 每個指標可以有多條規則。
+# 支持的規則類型 (初步):
+#   - range_check: 檢查數值是否在預期的 [min, max] 範圍內 (包含邊界)。
+#     參數: min (可選), max (可選)。
+#   - spike_check: 檢查日度變化是否超過基於歷史滾動標準差的閾值。
+#     參數: window (滾動窗口期, 天), threshold_std (標準差倍數)。
+#   - not_null_check: 檢查是否為空值 (可選，因為很多指標允許NaN，但某些核心指標可能不允許近期為空)
+#     參數: enabled (true/false)
+#   - stale_check: 檢查數據是否過期 (例如，日度數據超過N天未更新)
+#     參數: max_days_stale (允許的最大過期天數)
+
+# 示例指標的DQ規則:
+FRAOIS: # FRED - FRA-OIS 3-Month Spread
+  - rule_type: "range_check"
+    parameters: {min: -2.0, max: 5.0} # 預期範圍 (-2% 到 5%)
+    severity: "ERROR" # 如果超出此範圍，標記為錯誤
+  - rule_type: "spike_check"
+    parameters: {window: 60, threshold_std: 5.0} # 60天窗口，5倍標準差
+    severity: "WARNING"
+  - rule_type: "not_null_check" # 近期不應為空
+    parameters: {enabled: true, lookback_days: 5} # 檢查最近5天是否有值
+    severity: "WARNING"
+  - rule_type: "stale_check"
+    parameters: {max_days_stale: 5} # 數據不應超過5天未更新 (考慮到週末和假日)
+    severity: "ERROR"
+
+TEDRATE: # FRED - TED Spread
+  - rule_type: "range_check"
+    parameters: {min: -0.5, max: 7.0} # 預期範圍 (-0.5% 到 7%)
+    severity: "ERROR"
+  - rule_type: "spike_check"
+    parameters: {window: 60, threshold_std: 5.0}
+    severity: "WARNING"
+  - rule_type: "stale_check"
+    parameters: {max_days_stale: 5}
+    severity: "ERROR"
+
+VIX_YF: # Yahoo Finance - ^VIX (CBOE Volatility Index)
+  - rule_type: "range_check"
+    parameters: {min: 5.0, max: 150.0} # VIX 理論上不應低於5或極高
+    severity: "ERROR"
+  - rule_type: "spike_check"
+    parameters: {window: 20, threshold_std: 4.0} # VIX 波動較大，窗口期和閾值可能不同
+    severity: "WARNING"
+  - rule_type: "stale_check"
+    parameters: {max_days_stale: 3}
+    severity: "WARNING"
+
+SOFR: # FRED - Secured Overnight Financing Rate
+  - rule_type: "range_check"
+    parameters: {min: -0.5, max: 15.0} # SOFR 可能為負，但通常不會太低或太高
+    severity: "ERROR"
+  - rule_type: "stale_check"
+    parameters: {max_days_stale: 3}
+    severity: "ERROR"
+
+TLT_YF_Close: # Yahoo Finance - TLT 收盤價 (用於計算MOVE替代品)
+  - rule_type: "range_check"
+    parameters: {min: 50.0, max: 200.0} # TLT 價格大致範圍
+    severity: "WARNING" # 價格超出範圍可能是拆股等，先警告
+  - rule_type: "not_null_check"
+    parameters: {enabled: true, lookback_days: 3}
+    severity: "ERROR"
+  - rule_type: "stale_check"
+    parameters: {max_days_stale: 3}
+    severity: "ERROR"
+
+# 衍生指標的DQ規則示例 (在計算後應用)
+SOFR_Vol_Rank: # SOFR 波動率的百分位排名
+  - rule_type: "range_check"
+    parameters: {min: 0.0, max: 1.0} # 百分位排名應在0到1之間
+    severity: "ERROR"
+  - rule_type: "not_null_check"
+    parameters: {enabled: true, lookback_days: 5} # 近期排名不應為空
+    severity: "WARNING"
+
+MOVE_RealizedVol_Rank: # TLT 已實現波動率的百分位排名
+  - rule_type: "range_check"
+    parameters: {min: 0.0, max: 1.0}
+    severity: "ERROR"
+
+Dealer_GrossPosition_Rank:
+  - rule_type: "range_check"
+    parameters: {min: 0.0, max: 1.0}
+    severity: "ERROR"
+
+Dealer_NetPosition_Rank:
+  - rule_type: "range_check"
+    parameters: {min: 0.0, max: 1.0} # 假設排名的是絕對值或已處理方向性
+    severity: "ERROR"
+
+# ... 可為其他指標（如 Spread_10Y2Y_Rank, Pos_Res_Ratio_Rank 等）添加規則 ...
+
+# 預設規則 (如果某指標沒有特定規則，可以考慮是否應用預設規則，目前不啟用)
+# default_rules:
+#   - rule_type: "not_null_check"
+#     parameters: {enabled: false} # 預設不檢查空值，除非特定指標啟用
+#     severity: "INFO"
+#   - rule_type: "spike_check"
+#     parameters: {window: 60, threshold_std: 7.0} # 較寬鬆的預設尖峰檢查
+#     severity: "INFO"

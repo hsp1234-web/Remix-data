@@ -1,0 +1,12 @@
+pandas
+pyyaml
+duckdb
+SQLAlchemy
+fredapi
+yfinance
+requests
+openpyxl
+beautifulsoup4
+# FinMind # Removed as it's not currently used
+tqdm
+# Add any other specific versions if necessary, e.g., pandas==2.0.3

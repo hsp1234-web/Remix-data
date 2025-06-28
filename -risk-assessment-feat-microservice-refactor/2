@@ -1,0 +1,325 @@
+# -*- coding: utf-8 -*-
+# @title 📈 全景市場分析儀 v4.0 (生產級穩健與錯誤處理最終版)
+# @markdown ### 系統介紹
+# @markdown 本腳本是 V6「全景市場分析儀」的生產級數據預處理版本。它融合了專業級的錯誤處理思想，實現了一個極度穩健、具備狀態記憶的自動化數據處理管道。
+# @markdown - **階梯式降級抓取**: 實現了 `1h -> 1d -> 1wk` 的智慧降級抓取策略，確保在任何情況下都能獲取最精細的可用數據。
+# @markdown - **生產級錯誤處理 (核心升級)**: 根據您提供的專業範本，徹底解決了所有已知的 `ValueError` 和 `TypeError`，並為所有 API 呼叫增加了獨立、細緻的 `try-except` 保護，確保任何單一的數據抓取失敗都不會中斷整體流程。
+# @markdown - **真實數據整合與增量處理**: 正式呼叫 `yfinance` API，並透過 SHA-256 雜湊值偵測實現了高效的增量處理。
+# @markdown - **企業級抓取穩定性**: 內建延遲、抖動、指數退避重試及本地快取功能。
+# @markdown ---
+# @markdown ### 專案版本更新日誌 (Changelog)
+# @markdown - **`v4.0` (當前版本) - 生產級穩健與錯誤處理**
+# @markdown   - **核心重構**: 根據您提供的 `Cell 5` 錯誤處理範本，重構了 `generate_deep_dive_text` 函式，為其中的每一個 API 呼叫都增加了獨立的 `try-except` 保護，並對所有 Pandas DataFrame 進行了嚴格的空值與欄位檢查。
+# @markdown   - **錯誤修正**: 徹底解決了因不當的 Pandas DataFrame 判斷所導致的 `ValueError` 和 `TypeError`。
+# @markdown - **`v3.0`-`v3.1` - 階梯式降級引擎與初步修正**
+# @markdown   - 實作了「階梯式降級」數據抓取策略，並對 `v2.x` 的錯誤進行了初步修正。
+# @markdown - **`v2.0`-`v2.2` - Google Drive 整合與錯誤發現階段**
+# @markdown   - 引入 `IN/OUT` 資料夾及雜湊值增量處理。在此過程中發現了 `NameError`, `TypeError`, `ValueError` 等實戰問題。
+# @markdown - **`v1.0` - 全景市場分析儀 (本地沙盤推演)**
+# @markdown   - 透過內建模擬器完整實現並驗證了 V6 方案的核心邏輯。
+
+# ==============================================================================
+# 步驟 0: 環境設定與函式庫導入
+# ==============================================================================
+!pip install -q yfinance
+
+import os
+import re
+import time
+import json
+import hashlib
+import random
+from datetime import datetime, timedelta
+import pandas as pd
+import yfinance as yf
+from google.colab import drive
+
+try:
+    drive.mount('/content/drive')
+    print("Google Drive 掛載成功。")
+except Exception as e:
+    print(f"Google Drive 掛載失敗: {e}")
+
+# ==============================================================================
+# 步驟 1: 全局設定區
+# ==============================================================================
+BASE_PROJECT_PATH = '/content/drive/MyDrive/MyWeeklyAnalysisProject'
+IN_FOLDER_PATH = os.path.join(BASE_PROJECT_PATH, 'IN_Source_Reports')
+OUT_FOLDER_PATH = os.path.join(BASE_PROJECT_PATH, 'OUT_Processed_Prompts')
+CACHE_FOLDER_PATH = os.path.join(BASE_PROJECT_PATH, 'CACHE_Market_Data')
+MANIFEST_FILE_PATH = os.path.join(OUT_FOLDER_PATH, 'processed_files_manifest.json')
+
+MACRO_TICKERS = [
+    '^TWII', '^GSPC', '^IXIC', '^DJI',
+    'TLT', '^IRX', '^FVX', '^TNX', '^TYX',
+    '^VIX', '^MOVE',
+    'CL=F', 'GC=F'
+]
+BELLWETHER_STOCKS = {
+    'AAPL': '蘋果', 'MSFT': '微軟', 'NVDA': '輝達', 'TSLA': '特斯拉',
+    '2330.TW': '台積電', '2454.TW': '聯發科', 'JPM': '摩根大通', 'WMT': '沃爾瑪'
+}
+
+# ==============================================================================
+# 步驟 2: 核心功能函式庫
+# ==============================================================================
+
+def get_file_hash(filepath):
+    sha256_hash = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
+
+def load_manifest():
+    if os.path.exists(MANIFEST_FILE_PATH):
+        with open(MANIFEST_FILE_PATH, 'r', encoding='utf-8') as f:
+            try: return json.load(f)
+            except json.JSONDecodeError: return {}
+    return {}
+
+def save_manifest(manifest):
+    with open(MANIFEST_FILE_PATH, 'w', encoding='utf-8') as f:
+        json.dump(manifest, f, indent=4)
+
+def robust_yfinance_fetch(ticker, start, end, interval_priority=['1h', '1d', '1wk'], retries=3, backoff_factor=1):
+    for interval in interval_priority:
+        cache_filename = f"{ticker}_{start}_{end}_{interval}.pkl".replace(':', '-')
+        cache_filepath = os.path.join(CACHE_FOLDER_PATH, cache_filename)
+        if os.path.exists(cache_filepath):
+            print(f"  - (快取命中) 正在從本地載入 {ticker} ({interval}) 數據...")
+            return pd.read_pickle(cache_filepath), interval
+
+        print(f"  - (網路抓取) 正在嘗試 {ticker} ({interval})...")
+        for i in range(retries):
+            try:
+                time.sleep(random.uniform(0.5, 1.5))
+                data = yf.download(ticker, start=start, end=end, interval=interval, progress=False, auto_adjust=True)
+
+                if data is not None and not data.empty:
+                    print(f"  - ✅ 成功抓取並快取 {ticker} ({interval})。")
+                    data.to_pickle(cache_filepath)
+                    return data, interval
+                else:
+                    print(f"  - {ticker} ({interval}) 無數據，嘗試下一個週期...")
+                    break
+            except Exception as e:
+                wait_time = backoff_factor * (2 ** i)
+                print(f"  - 抓取 {ticker} ({interval}) 失敗 (第 {i+1}/{retries} 次): {str(e)[:150]}...")
+                if i < retries - 1:
+                    time.sleep(wait_time)
+                else:
+                    print(f"  - 已達最大重試次數，嘗試下一個週期...")
+
+    print(f"  - ❌ 放棄抓取 {ticker}，所有週期均嘗試失敗。")
+    failed_cache_path = os.path.join(CACHE_FOLDER_PATH, f"{ticker}_{start}_{end}_FAILED.pkl".replace(':', '-'))
+    pd.DataFrame().to_pickle(failed_cache_path)
+    return pd.DataFrame(), 'N/A'
+
+def get_candlestick_feature(row):
+    if not all(k in row and pd.notna(row[k]) for k in ['Open', 'Close', 'High', 'Low']): return "數據不全"
+    if row['High'] == row['Low']: return "無波動"
+    body_size = abs(row['Open'] - row['Close'])
+    full_range = row['High'] - row['Low']
+    if full_range == 0 or body_size / full_range < 0.2: return "十字星"
+    return "長紅K線" if row['Close'] > row['Open'] else "長黑K線"
+
+def generate_focus_context_text(ticker, total_start, total_end, focus_start, focus_end):
+    full_daily_data, daily_interval = robust_yfinance_fetch(ticker, total_start, total_end, interval_priority=['1d', '1wk'])
+    if full_daily_data.empty: return f"# {ticker}\n- 無法獲取基礎日線/週線數據。\n"
+
+    full_hourly_data, hourly_interval = robust_yfinance_fetch(ticker, total_start, total_end, interval_priority=['1h'])
+
+    output_lines = [f"# {ticker} - 宏觀市場數據 (主要週期: {daily_interval})\n"]
+    output_lines.append("# PART 1: 宏觀上下文 (前後各2個月) - 每日量化日誌")
+
+    avg_volume = full_daily_data['Volume'].mean() if 'Volume' in full_daily_data and not full_daily_data['Volume'].empty else 1
+    context_data = full_daily_data[(full_daily_data.index.date < focus_start.date()) | (full_daily_data.index.date > focus_end.date())]
+
+    for date, row in context_data.iterrows():
+        daily_change = (row['Close'] / row['Open'] - 1) * 100 if row.get('Open', 0) > 0 else 0
+        k_feature = get_candlestick_feature(row)
+        volume_rating = row.get('Volume', 0) / avg_volume if avg_volume > 0 else 0
+        log_line = f"- {date.strftime('%Y-%m-%d')}: {daily_change:+.1f}%, {k_feature}, 成交量:{volume_rating:.1f}x"
+        output_lines.append(log_line)
+
+        if volume_rating > 3.0 and not full_hourly_data.empty:
+            output_lines.append("  - [偵測到關鍵事件日：附上當日完整小時線數據]")
+            anomaly_hourly_data = full_hourly_data[full_hourly_data.index.date == date.date()]
+            if not anomaly_hourly_data.empty:
+                output_lines.append("    " + anomaly_hourly_data.to_string().replace('\n', '\n    '))
+
+    output_lines.append(f"\n# PART 2: 焦點分析區 (核心週: {focus_start.strftime('%Y-%m-%d')} to {focus_end.strftime('%Y-%m-%d')})")
+
+    focus_data, focus_interval = (full_hourly_data, hourly_interval) if not full_hourly_data.empty else (full_daily_data, daily_interval)
+    focus_data_in_range = focus_data[(focus_data.index.date >= focus_start.date()) & (focus_data.index.date <= focus_end.date())]
+
+    if not focus_data_in_range.empty:
+        output_lines.append(f"- 提供本週數據 (數據週期: {focus_interval})")
+        output_lines.append(focus_data_in_range.to_string())
+    else:
+        output_lines.append("- 警告: 核心週無可用數據。")
+
+    return "\n".join(output_lines)
+
+def generate_deep_dive_text(ticker):
+    print(f"  - 正在剖析龍頭企業: {ticker}...")
+    lines = []
+    try:
+        stock = yf.Ticker(ticker)
+        time.sleep(random.uniform(0.2, 0.5))
+
+        try:
+            info = stock.info
+            lines.append(f"- **{info.get('shortName', ticker)} ({ticker})**")
+            market_cap = info.get('marketCap')
+            market_cap_str = f"{market_cap / 1e9:.1f}B" if market_cap else "N/A"
+            lines.append(f"  - 基本面: 產業({info.get('industry', 'N/A')}), 市值({market_cap_str})")
+        except Exception as e:
+            lines.append(f"- **{BELLWETHER_STOCKS.get(ticker, ticker)} ({ticker})**")
+            lines.append(f"  - 警告: 無法獲取基本資訊. Error: {e}")
+            # 即使 info 失敗，也繼續嘗試其他數據
+            pass
+
+        try:
+            financials = stock.quarterly_financials
+            if financials is not None and not financials.empty:
+                financials = financials.T
+                if 'Total Revenue' in financials.columns and len(financials) >= 5 and financials['Total Revenue'].iloc[4] is not None and financials['Total Revenue'].iloc[4] > 0:
+                    rev_g = (financials['Total Revenue'].iloc[0] / financials['Total Revenue'].iloc[4] - 1) * 100
+                    if lines: lines[-1] += f", 最新營收年增({rev_g:.1f}%)"
+        except Exception as e:
+            print(f"    - 警告: 無法獲取 {ticker} 的財務數據. Error: {e}")
+            lines.append("  - 財務數據: N/A")
+
+        try:
+            time.sleep(random.uniform(0.2, 0.5))
+            recom = stock.recommendations
+            if recom is not None and not recom.empty:
+                lines.append(f"  - 分析師情緒: {recom['To Grade'].tail(5).value_counts().to_dict()}")
+        except Exception as e:
+            print(f"    - 警告: 無法獲取 {ticker} 的分析師評級. Error: {e}")
+            lines.append("  - 分析師情緒: N/A")
+
+        try:
+            time.sleep(random.uniform(0.2, 0.5))
+            news = stock.news
+            if news and isinstance(news, list) and len(news) > 0:
+                lines.append(f"  - 關鍵新聞: \"{news[0]['title']}\" ({news[0]['publisher']})")
+        except Exception as e:
+            print(f"    - 警告: 無法獲取 {ticker} 的新聞. Error: {e}")
+            lines.append("  - 關鍵新聞: N/A")
+
+        return "\n".join(lines)
+
+    except Exception as e:
+        print(f"  - 剖析 {ticker} 時發生嚴重錯誤: {e}")
+        return f"- **{BELLWETHER_STOCKS.get(ticker, ticker)} ({ticker})**\n  - 無法獲取詳細數據。"
+
+# ==============================================================================
+# 步驟 4: 主執行函式
+# ==============================================================================
+def run_panoramic_processor():
+    print("="*80)
+    print("🚀 啟動 V6 全景市場分析儀 (v4.0 - 生產級穩健版)")
+    print("="*80)
+
+    os.makedirs(IN_FOLDER_PATH, exist_ok=True)
+    os.makedirs(OUT_FOLDER_PATH, exist_ok=True)
+    os.makedirs(CACHE_FOLDER_PATH, exist_ok=True)
+    print(f"輸入資料夾 (IN): {IN_FOLDER_PATH}")
+    print(f"輸出資料夾 (OUT): {OUT_FOLDER_PATH}")
+    print(f"快取資料夾 (CACHE): {CACHE_FOLDER_PATH}")
+
+    manifest = load_manifest()
+    print(f"\n[狀態] 發現 {len(manifest)} 個已處理過的檔案紀錄。")
+
+    try:
+        source_files = [f for f in os.listdir(IN_FOLDER_PATH) if f.endswith('.txt') and 'Gemini處理' in f]
+        print(f"[掃描] 在輸入資料夾中找到 {len(source_files)} 個目標 .txt 檔案。")
+    except FileNotFoundError:
+        print(f"錯誤：找不到輸入資料夾 '{IN_FOLDER_PATH}'。")
+        return
+
+    new_files_to_process = [f for f in source_files if manifest.get(f) != get_file_hash(os.path.join(IN_FOLDER_PATH, f))]
+
+    if not new_files_to_process:
+        print("\n[完成] 沒有新的或修改過的檔案需要處理。")
+        return
+
+    print(f"\n[任務] 準備處理 {len(new_files_to_process)} 個新檔案...")
+    print("-" * 80)
+
+    for filename in new_files_to_process:
+        print(f"\n🔥 開始處理檔案: {filename}")
+        filepath = os.path.join(IN_FOLDER_PATH, filename)
+
+        try:
+            match = re.search(r'(\d{4})年第(\d{1,2})週', filename)
+            if not match:
+                print(f"  - 錯誤：無法從 '{filename}' 解析日期，已跳過。")
+                continue
+
+            year, week_num = map(int, match.groups())
+            focus_start = datetime.fromisocalendar(year, week_num, 1)
+            focus_end = focus_start + timedelta(days=6)
+            total_start_dt = focus_start - timedelta(days=60)
+            total_end_dt = focus_end + timedelta(days=60)
+            total_start, total_end = total_start_dt.strftime('%Y-%m-%d'), total_end_dt.strftime('%Y-%m-%d')
+            print(f"  - [1/4] 已計算日期 -> 焦點週: {focus_start.strftime('%Y-%m-%d')} to {focus_end.strftime('%Y-%m-%d')}")
+
+            print(f"\n  - [2/4] 正在抓取宏觀市場數據...")
+            macro_context_text = []
+            for ticker in MACRO_TICKERS:
+                text = generate_focus_context_text(ticker, total_start, total_end, focus_start, focus_end)
+                macro_context_text.append(text)
+
+            print(f"\n  - [3/4] 正在剖析龍頭企業基本面...")
+            deep_dive_texts = []
+            for ticker in BELLWETHER_STOCKS.keys():
+                text = generate_deep_dive_text(ticker)
+                deep_dive_texts.append(text)
+
+            with open(filepath, 'r', encoding='utf-8') as f:
+                report_content = f.read()
+
+            final_prompt = f"""# AI 策略分析任務 (預處理文本)
+# 週報標題: {filename}
+---
+## 質化週報內文
+{report_content}
+---
+## PART 1: 宏觀市場上下文
+{chr(10).join(macro_context_text)}
+---
+## PART 2: 龍頭企業基本面剖析
+{chr(10).join(deep_dive_texts)}
+---
+## 你的任務與產出要求
+[此處將是您提供給 Gemini 的最終指令]
+"""
+            print(f"\n  - [4/4] 已生成最終分析用 Prompt。")
+
+            output_filename = f"PROMPT_{os.path.splitext(filename)[0]}.txt"
+            output_filepath = os.path.join(OUT_FOLDER_PATH, output_filename)
+            with open(output_filepath, 'w', encoding='utf-8') as f:
+                f.write(final_prompt)
+
+            manifest[filename] = get_file_hash(filepath)
+            save_manifest(manifest)
+
+            print(f"  - ✅ 成功！已將處理結果儲存至: {output_filepath}")
+
+        except Exception as e:
+            print(f"處理檔案 '{filename}' 時發生不可預期的嚴重錯誤: {e}")
+            import traceback
+            traceback.print_exc()
+            print(f"將跳過此檔案，繼續下一個。")
+            continue
+
+    print("\n\n" + "="*80)
+    print("🎉 所有新檔案處理完畢！")
+    print("="*80)
+
+# --- 執行主程式 ---
+run_panoramic_processor()

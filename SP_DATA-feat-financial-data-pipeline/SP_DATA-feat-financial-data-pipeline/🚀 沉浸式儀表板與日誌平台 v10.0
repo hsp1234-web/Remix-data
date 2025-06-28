@@ -1,0 +1,386 @@
+# -*- coding: utf-8 -*-
+# @title 🚀 沉浸式儀表板與日誌平台 v10.0 (最終體驗版)
+# @markdown ### 系統介紹
+# @markdown 這是一個為您量身打造的終極測試平台。它預設以一個**穩定、無閃爍、且在任務結束後會留存的中文儀表板**提供清爽的用戶體驗。所有來自您專案的內部日誌在儀表板模式下將被**徹底靜音**，並與效能數據一同整理成**三份易於閱讀的中文 `.txt` 報告**。
+# @markdown - **沉浸式儀表板**: 採用 `update_display` 技術，並在任務結束後留存最終狀態。
+# @markdown - **日誌靜默技術**: 透過程式化組態，徹底關閉專案內部日誌在儀表板模式下的螢幕輸出。
+# @markdown - **三合一中文報告**: 自動生成「綜合執行報告」、「詳細效能紀錄」以及包含兩者所有內容的「完整執行總覽」三份 `.txt` 檔案。
+# @markdown ---
+# @markdown ### v10.0 開發日誌 (體驗終極版)
+# @markdown - **修正**: 解決了 `log_header` 的 `TypeError` 錯誤。
+# @markdown - **新增**: 儀表板在任務結束後會更新至「完成」狀態並留存，不再消失。
+# @markdown - **新增**: 實現了日誌靜默技術，在儀表板模式下徹底隱藏專案內部日誌。
+# @markdown - **優化**: 進一步簡化了儀表板模式下的最終輸出，達到絕對純淨。
+
+# ==============================================================================
+# @markdown ### 步驟 1: 📂 設定執行參數
+# @markdown 請在此處輸入您的部署目標，並選擇您偏好的輸出模式。
+# ==============================================================================
+# --- Git 部署相關設定 ---
+GITHUB_REPO_URL = "https://github.com/hsp1234-web/SP_DATA.git" #@param {type:"string"}
+BRANCH_NAME = "feat/metadata-scanner-integration" #@param {type:"string"}
+LOCAL_CLONE_PATH = "/content/deployed_project" #@param {type:"string"}
+
+# --- 數據探勘相關設定 ---
+GDRIVE_TARGET_FOLDER = "MyTaifexDataProject" #@param {type:"string"}
+
+# --- 介面與日誌設定 ---
+SHOW_DETAILED_LOGS = False #@param {type:"boolean"}
+
+# ==============================================================================
+# @markdown ### 步驟 2: ▶️ 點擊執行此儲存格
+# @markdown 腳本將全自動執行所有任務。
+# ==============================================================================
+
+# --- 核心函式庫導入 ---
+import os
+import sys
+import subprocess
+import shutil
+import io
+import time
+import logging
+import traceback
+from datetime import datetime, timedelta
+from collections import deque
+from typing import List, Dict, Any
+from pathlib import Path
+import html
+from contextlib import contextmanager
+
+# --- Colab/IPython 專用函式庫 ---
+try:
+    from google.colab import drive
+    from IPython.display import display, HTML
+    IS_COLAB = True
+except ImportError:
+    IS_COLAB = False
+    display, HTML = print, lambda x: x
+
+# --- 第三方函式庫與自動安裝 ---
+try:
+    import psutil
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "psutil"])
+    import psutil
+try:
+    import pytz
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", "pytz"])
+    import pytz
+
+# --- 全域設定與輔助函式 ---
+TAIPEI_TZ = pytz.timezone('Asia/Taipei')
+def get_taipei_time_str(ts=None, fmt='%Y-%m-%d %H:%M:%S') -> str:
+    dt = datetime.fromtimestamp(ts) if ts else datetime.now()
+    return dt.astimezone(TAIPEI_TZ).strftime(fmt)
+
+def format_timedelta(seconds: float) -> str:
+    return str(timedelta(seconds=int(seconds)))
+
+def human_readable_size(size_bytes: int) -> str:
+    if size_bytes is None: return "N/A"
+    if size_bytes == 0: return "0 B"
+    size_name = ("B", "KB", "MB", "GB", "TB")
+    i = int(size_bytes.bit_length() / 10)
+    p = 1024 ** i
+    s = round(size_bytes / p, 2)
+    return f"{s} {size_name[i]}"
+
+# --- 硬體管理 ---
+class HardwareManager:
+    @staticmethod
+    def get_status_snapshot() -> dict:
+        return {'cpu': psutil.cpu_percent(), 'ram': psutil.virtual_memory().percent, 'ts': time.time()}
+
+# --- v10.0 互動式儀表板與日誌系統 ---
+class LogAndReportManager:
+    def __init__(self, run_id: str):
+        self.run_id = run_id
+        self.log_dir = Path(f"運行日誌_{self.run_id}")
+        self.log_dir.mkdir(parents=True, exist_ok=True)
+        
+        self.summary_log_path = self.log_dir / f"綜合執行報告_{self.run_id}.txt"
+        self.perf_log_path = self.log_dir / f"詳細效能紀錄_{self.run_id}.txt"
+        self.combined_log_path = self.log_dir / f"完整執行總覽_{self.run_id}.txt"
+        self.internal_log_path = self.log_dir / f"專案內部日誌_{self.run_id}.txt"
+        
+        self.dashboard_handle = None
+
+    def _get_timestamp(self) -> str:
+        return get_taipei_time_str(fmt='%Y-%m-%d %H:%M:%S.%f')[:-3]
+    
+    def log_message(self, msg: str, level: str = "INFO", to_ui: bool = True):
+        icon_map = {"INFO": "⚪", "SUCCESS": "✅", "WARNING": "⚠️", "ERROR": "❌"}
+        if to_ui:
+            color_map = {"INFO": "#FFFFFF", "SUCCESS": "#4CAF50", "WARNING": "#FFC107", "ERROR": "#F44336"}
+            weight = "bold" if level in ["SUCCESS", "ERROR", "WARNING"] else "normal"
+            if IS_COLAB: display(HTML(f'<div style="font-family:monospace; white-space:pre-wrap; margin:0; padding:1px 0;"><span style="color:#9E9E9E; margin-right:10px;">{self._get_timestamp()}</span><span style="color:{color_map.get(level, "#FFFFFF")}; font-weight:{weight};">{icon_map.get(level, "⚪")} {html.escape(msg)}</span></div>'))
+            else: print(f"{self._get_timestamp()} [{level}] {msg}")
+        
+        with open(self.summary_log_path, 'a', encoding='utf-8') as f:
+            f.write(f"{self._get_timestamp()} [{level.ljust(7)}] {msg}\n")
+
+    def log_header(self, msg: str, to_ui: bool = True):
+        if to_ui:
+            if IS_COLAB: display(HTML(f'<h3 style="color:white; border-bottom:2px solid #64B5F6; padding-bottom:5px; font-family:sans-serif; margin-top:1em;">{msg}</h3>'))
+            else: print(f"\n{'='*80}\n=== {msg.strip()} ===\n{'='*80}")
+        with open(self.summary_log_path, 'a', encoding='utf-8') as f:
+            f.write(f"\n{'='*80}\n=== {msg.strip()} ===\n{'='*80}\n")
+    
+    def log_performance_event(self, event_name: str, file_path: str, snapshot: dict):
+        cpu, ram = snapshot['cpu'], snapshot['ram']
+        with open(self.perf_log_path, 'a', encoding='utf-8') as f:
+            f.write(f"[{self._get_timestamp()}] [{event_name:13s}] CPU: {cpu:5.1f}% | RAM: {ram:5.1f}% | 檔案: {file_path}\n")
+
+    def display_diagnostic_card(self, result: Dict[str, Any]):
+        status, descriptor, file_size = result.get('status', 'failure'), result.get('descriptor', '未知檔案'), result.get('size', 0)
+        header_color, status_icon = ("#4CAF50", "✅") if status == 'success' else ("#F44336", "❌")
+        
+        header_html = f'<div style="background-color:{header_color}; color:white; padding: 8px 12px; font-family:monospace; font-weight:bold; border-radius: 5px 5px 0 0;">{status_icon} {status.upper()}: {html.escape(descriptor)}</div>'
+        details_html = '<div style="background-color:#2E2E2E; padding: 12px; font-family:monospace; border-radius: 0 0 5px 5px; margin-bottom:1em; font-size:13px;">'
+        
+        if 'snap_before' in result and 'snap_after' in result:
+            sb, sa = result['snap_before'], result['snap_after']
+            td, cd, rd = sa['ts'] - sb['ts'], sa['cpu'] - sb['cpu'], sa['ram'] - sb['ram']
+            details_html += f'<strong style="color:#81D4FA;">[效能足跡]</strong><br><span>處理耗時: {td:.3f} 秒</span> | <span>CPU成本: <span style="color:{"#FF8A80" if cd > 0 else "#B9F6CA"};">{"+" if cd >= 0 else ""}{cd:.1f}%</span></span> | <span>RAM成本: <span style="color:{"#FF8A80" if rd > 0 else "#B9F6CA"};">{"+" if rd >= 0 else ""}{rd:.1f}%</span></span><hr style="border-color:#444; margin: 8px 0;">'
+        
+        details_html += f'<strong style="color:#FFD180;">[檔案詳情]</strong><br><span>檔案大小: {human_readable_size(file_size)}</span><br>'
+        
+        if status == 'failure':
+            error_reason = result.get('error_reason', '未知錯誤')
+            details_html += f'<br><strong style="color:#FF8A80;">錯誤追蹤 (TRACEBACK):</strong><pre style="white-space:pre-wrap; margin:0; font-family:monospace; color:#FFCDD2; background-color:#333; padding: 8px; border-radius: 4px;">{html.escape(error_reason)}</pre>'
+        
+        details_html += '</div>'
+        if IS_COLAB: display(HTML(header_html + details_html))
+        else: print(f"\n--- Report for {descriptor} ---\nStatus: {status.upper()}")
+
+    def init_dashboard(self):
+        if IS_COLAB: self.dashboard_handle = display(HTML(""), display_id=True)
+
+    def update_dashboard(self, p_count: int, t_count: int, q_size: int, file: str, elapsed: float, completed: bool = False):
+        if IS_COLAB and self.dashboard_handle:
+            percentage = (p_count / t_count) * 100 if t_count > 0 else 100
+            bar_len = 30
+            filled_len = int(bar_len * p_count / t_count) if t_count > 0 else bar_len
+            
+            if completed:
+                bar = '▰' * bar_len
+                status_color = "#76D7C4"
+                title = "✅ 管線執行完畢！"
+                status_text = f"所有 {p_count} 個任務已成功處理。"
+            else:
+                bar = '▰' * filled_len + '▱' * (bar_len - filled_len)
+                status_color = "#64B5F6"
+                title = "🚀 資料擷取管線執行中..."
+                status_text = f"正在處理: {html.escape(file)}"
+
+            dashboard_html = f"""
+            <div style="font-family: 'SF Mono', 'Consolas', monospace; background-color: #2E2E2E; padding: 18px; border-radius: 10px; color: white; line-height: 1.8;">
+                <div style="font-size: 1.3em; margin-bottom: 12px; font-weight: bold; color: {status_color};">{title}</div>
+                <div style="font-size:1.1em; color: #F7DC6F; margin-bottom: 8px;"><b>[ {bar} ] {percentage:.1f}%</b></div>
+                <div>
+                  <span style="color:#ABB2B9;">進度:</span> <b style="color:white; font-size:1.1em;">{p_count} / {t_count}</b> &nbsp;|&nbsp; 
+                  <span style="color:#ABB2B9;">佇列:</span> <b style="color:white;">{q_size}</b> &nbsp;|&nbsp;
+                  <span style="color:#ABB2B9;">運行時間:</span> <b style="color:white;">{format_timedelta(elapsed)}</b>
+                </div>
+                <div style="margin-top: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <span style="color:#ABB2B9;">狀態:</span> <span style="color:#E5E7E9;">{status_text}</span>
+                </div>
+            </div>
+            """
+            self.dashboard_handle.update(HTML(dashboard_html))
+
+    def finalize_reports(self, all_reports: List[Dict], duration: float, output_dir: Path, internal_logs: str):
+        with open(self.internal_log_path, 'w', encoding='utf-8') as f: f.write(internal_logs)
+        
+        self.log_header("產出最終報告", to_ui=False)
+        summary_lines, successful_tasks, failed_tasks = [], [r for r in all_reports if r['status'] == 'success'], [r for r in all_reports if r['status'] == 'failure']
+
+        summary_lines.extend(["="*40, "          綜合執行報告", "="*40,
+            f"報告生成時間: {get_taipei_time_str()}", f"總執行耗時: {format_timedelta(duration)}", "-"*40,
+            "\n【任務總覽】", f"  - 總共處理壓縮檔數: {len(all_reports)}", f"  - ✅ 成功: {len(successful_tasks)}", f"  - ❌ 失敗: {len(failed_tasks)}"])
+        
+        if failed_tasks:
+            summary_lines.append("\n【失敗檔案詳情】")
+            for i, task in enumerate(failed_tasks, 1):
+                summary_lines.extend([f"\n--- {i}. {task['descriptor']} ---", "  錯誤追蹤 (Traceback):", task.get('error_reason', '未知錯誤')])
+        
+        if successful_tasks:
+            summary_lines.append("\n【效能瓶頸分析 (處理耗時前 5 名)】")
+            sorted_by_time = sorted(successful_tasks, key=lambda r: (r['snap_after']['ts'] - r['snap_before']['ts']), reverse=True)
+            for i, task in enumerate(sorted_by_time[:5], 1):
+                summary_lines.append(f"  {i}. {(task['snap_after']['ts'] - task['snap_before']['ts']):.3f} 秒 - {task['descriptor']}")
+
+        extracted_files = [str(p.relative_to(output_dir)) for p in output_dir.glob("**/*") if p.is_file()]
+        summary_lines.extend(["\n【最終產出檔案清單】", f"  - 共提取了 {len(extracted_files)} 個檔案。"])
+        summary_lines.extend([f"    - {f}" for f in sorted(extracted_files)])
+        
+        with open(self.summary_log_path, 'w', encoding='utf-8') as f: f.write("\n".join(summary_lines))
+        
+        with open(self.combined_log_path, 'w', encoding='utf-8') as f_comb:
+            f_comb.write("\n".join(summary_lines))
+            f_comb.write("\n\n" + "="*80 + "\n          詳細效能紀錄\n" + "="*80 + "\n\n")
+            with open(self.perf_log_path, 'r', encoding='utf-8') as f_perf: f_comb.write(f_perf.read())
+            f_comb.write("\n\n" + "="*80 + "\n          專案內部日誌 (擷取自 Console)\n" + "="*80 + "\n\n")
+            f_comb.write(internal_logs)
+
+@contextmanager
+def suppress_project_logs(should_suppress: bool, internal_log_stream: io.StringIO):
+    """一個上下文管理器，用於在儀表板模式下暫時靜音專案的根日誌記錄器"""
+    if not should_suppress:
+        yield
+        return
+        
+    project_logger = logging.getLogger('taifex_pipeline')
+    if not project_logger:
+        yield
+        return
+        
+    original_handlers = project_logger.handlers[:]
+    
+    # 創建一個專門用於捕獲日誌的 handler
+    capture_handler = logging.StreamHandler(internal_log_stream)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)')
+    capture_handler.setFormatter(formatter)
+    
+    # 移除所有現有的 handler，並換上我們的 capture_handler
+    project_logger.handlers = [capture_handler]
+    
+    try:
+        yield
+    finally:
+        # 恢復原始的 handlers
+        project_logger.handlers = original_handlers
+
+# --- 主執行流程 ---
+def main():
+    run_id = get_taipei_time_str(fmt='%Y%m%d_%H%M%S')
+    log_manager = LogAndReportManager(run_id)
+
+    try:
+        log_manager.log_header("🚀 沉浸式儀表板與日誌平台 v10.0 啟動")
+        log_manager.log_header("階段一: Git 專案部署與環境建置")
+        
+        if os.path.exists(LOCAL_CLONE_PATH): shutil.rmtree(LOCAL_CLONE_PATH)
+        git_command = ["git", "clone", "--branch", BRANCH_NAME, "--single-branch", GITHUB_REPO_URL, LOCAL_CLONE_PATH]
+        log_manager.log_message(f"執行指令: {' '.join(git_command)}")
+        git_result = subprocess.run(git_command, capture_output=True, text=True, encoding='utf-8', check=False)
+        if git_result.returncode != 0:
+            log_manager.log_message(f"Git clone 失敗！\n{git_result.stderr.strip()}", "ERROR")
+            return
+        log_manager.log_message("專案分支成功拉取！", "SUCCESS")
+        
+        requirements_path = os.path.join(LOCAL_CLONE_PATH, 'requirements.txt')
+        if os.path.exists(requirements_path):
+            log_manager.log_message("正在安裝通用依賴...")
+            pip_command = [sys.executable, "-m", "pip", "install", "-q", "-r", requirements_path]
+            pip_result = subprocess.run(pip_command, capture_output=True, text=True, encoding='utf-8')
+            if pip_result.returncode != 0:
+                log_manager.log_message(f"通用依賴安裝可能不完整。\n錯誤訊息: {pip_result.stderr.strip()}", "WARNING")
+            else:
+                log_manager.log_message("通用依賴安裝完成！", "SUCCESS")
+
+        project_src_path = os.path.join(LOCAL_CLONE_PATH, 'src')
+        if not os.path.isdir(project_src_path): project_src_path = LOCAL_CLONE_PATH
+        sys.path.insert(0, project_src_path)
+        log_manager.log_message(f"已將專案原始碼路徑 '{project_src_path}' 加入到系統路徑。")
+
+        from taifex_pipeline.ingestion.pipeline import IngestionPipeline
+
+    except Exception:
+        log_manager.log_message(f"階段一發生未預期錯誤: {traceback.format_exc()}", "ERROR")
+        return
+
+    start_time = time.time()
+    raw_data_output_path = Path(f"{LOCAL_CLONE_PATH}/data/01_raw")
+    all_final_reports = []
+    
+    try:
+        log_manager.log_header("階段二: 循序任務調度與執行", to_ui=SHOW_DETAILED_LOGS)
+        drive.mount('/content/drive', force_remount=True, timeout_ms=60000)
+        full_target_path = Path("/content/drive/MyDrive") / GDRIVE_TARGET_FOLDER
+        if not full_target_path.is_dir():
+            log_manager.log_message(f"錯誤：找不到數據來源路徑 '{full_target_path}'。", "ERROR")
+            return
+        log_manager.log_message(f"Google Drive 掛載成功，來源: {full_target_path}", "SUCCESS", to_ui=SHOW_DETAILED_LOGS)
+
+        if raw_data_output_path.exists(): shutil.rmtree(raw_data_output_path)
+        raw_data_output_path.mkdir(parents=True, exist_ok=True)
+        log_manager.log_message(f"已準備好輸出目錄: {raw_data_output_path}", to_ui=SHOW_DETAILED_LOGS)
+
+        pipeline_instance = IngestionPipeline(config={"ingestion": {"output_dir": str(raw_data_output_path)}})
+        
+        work_queue, processed_paths = deque(), set()
+        log_manager.log_message("正在遞迴掃描來源目錄以尋找所有 .zip 檔案...", to_ui=SHOW_DETAILED_LOGS)
+        all_zip_files = list(full_target_path.rglob("*.zip"))
+        work_queue.extend(all_zip_files)
+        total_tasks, processed_count = len(all_zip_files), 0
+        log_manager.log_message(f"掃描完成，發現 {total_tasks} 個壓縮檔任務。", to_ui=SHOW_DETAILED_LOGS)
+        
+        if not work_queue:
+            log_manager.log_message("在目標目錄及其所有子目錄中均未發現 .zip 檔案。流程結束。", "WARNING")
+            return
+        
+        if not SHOW_DETAILED_LOGS: log_manager.init_dashboard()
+        else: log_manager.log_message("開始循序處理任務...")
+
+        internal_log_capture = io.StringIO()
+
+        with suppress_project_logs(should_suppress=not SHOW_DETAILED_LOGS, internal_log_stream=internal_log_capture):
+            while work_queue:
+                zip_path = work_queue.popleft()
+                if zip_path in processed_paths:
+                    log_manager.log_message(f"偵測到循環依賴，跳過: {zip_path.name}", "WARNING", to_ui=SHOW_DETAILED_LOGS)
+                    continue
+                processed_paths.add(zip_path)
+                
+                try: display_path_str = str(zip_path.relative_to(full_target_path.parent))
+                except ValueError: display_path_str = f"(巢狀) {zip_path.name}"
+                
+                if not SHOW_DETAILED_LOGS:
+                    log_manager.update_dashboard(processed_count, total_tasks, len(work_queue), display_path_str, time.time() - start_time)
+
+                snap_before = HardwareManager.get_status_snapshot()
+                log_manager.log_performance_event("process_start", str(zip_path), snap_before)
+                report = {}
+                
+                try:
+                    nested_zips = pipeline_instance._process_single_zip(zip_path)
+                    snap_after = HardwareManager.get_status_snapshot()
+                    report = {"status": "success", "descriptor": str(zip_path), "size": zip_path.stat().st_size, "snap_before": snap_before, "snap_after": snap_after}
+                    
+                    for nested_zip_path in nested_zips:
+                        if nested_zip_path not in processed_paths:
+                            work_queue.append(nested_zip_path)
+                            total_tasks += 1
+                except Exception:
+                    snap_after = HardwareManager.get_status_snapshot()
+                    report = {"status": "failure", "descriptor": str(zip_path), "size": zip_path.stat().st_size if zip_path.exists() else 0, "error_reason": traceback.format_exc(), "snap_before": snap_before, "snap_after": snap_after}
+                
+                log_manager.log_performance_event("process_end", str(zip_path), snap_after)
+                
+                if SHOW_DETAILED_LOGS or report["status"] == "failure":
+                    if not SHOW_DETAILED_LOGS and report["status"] == "failure":
+                        log_manager.update_dashboard(processed_count, total_tasks, len(work_queue), display_path_str, time.time() - start_time, completed=False)
+                    log_manager.display_diagnostic_card(report)
+
+                all_final_reports.append(report)
+                processed_count += 1
+        
+        duration = time.time() - start_time
+        if not SHOW_DETAILED_LOGS:
+            log_manager.update_dashboard(processed_count, total_tasks, len(work_queue), "", duration, completed=True)
+        
+        log_manager.log_message(f"所有任務處理完畢，總耗時 {format_timedelta(duration)}。", "SUCCESS", to_ui=SHOW_DETAILED_LOGS)
+        
+        log_manager.finalize_reports(all_final_reports, duration, raw_data_output_path, internal_log_capture.getvalue())
+        
+    except Exception:
+        log_manager.log_message(f"階段二發生未預期錯誤: {traceback.format_exc()}", "ERROR")
+    finally:
+        log_manager.log_header("📋 平台執行結束", to_ui=SHOW_DETAILED_LOGS)
+        log_manager.log_message(f"所有日誌已保存至 '{log_manager.log_dir}' 資料夾。", "INFO")
+
+if __name__ == '__main__':
+    main()

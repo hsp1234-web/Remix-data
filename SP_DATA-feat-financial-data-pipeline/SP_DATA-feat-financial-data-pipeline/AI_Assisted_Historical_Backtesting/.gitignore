@@ -1,0 +1,100 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# DuckDB
+*.duckdb
+*.duckdb.wal
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE / Editor specific
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Data files (if not intended to be committed)
+# 一般來說，`/data/` 目錄下的內容（如數據庫文件、大型快取）應通過 `.gitkeep` 保留目錄結構，但不提交實際數據。
+# 如果有特定的數據樣本或小型配置文件需要提交，可以取消註釋並明確指定。
+# /data/*.csv
+# /data/*.json
+
+# Log files
+logs/
+*.log
+
+# Coverage reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytestdebug.log
+
+# local settings
+local_settings.py

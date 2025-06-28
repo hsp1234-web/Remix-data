@@ -1,0 +1,59 @@
+2025-06-26 03:37:22,284 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] GlobalLogSetup - initialize_global_log.initialize_log_file:134 - Global logger initialized. Log file: /app/api_test_logs/2025-06-26T033722Z_application_log.txt
+2025-06-26 03:37:22,284 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] MainApp.Setup - initialize_global_log.log_message:190 - main.py: Global application logger (from initialize_global_log) explicitly initialized. Log file: /app/api_test_logs/2025-06-26T033722Z_application_log.txt
+2025-06-26 03:37:22,285 (Taipei: 2025-06-26 11:37:22 UTC+0000) [WARNING] MainApp.InitCheck - initialize_global_log.log_message:190 - Global application log file path from module was not set. Bootstrap logger might be active for app logs.
+2025-06-26 03:37:22,285 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] MainApp.Setup - initialize_global_log.log_message:190 - Detailed execution transcript for this run will ALSO be saved to: /app/market_briefing_log.txt
+2025-06-26 03:37:22,285 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - --- 開始執行端到端金融數據處理原型 (Atomic Script Version) ---
+2025-06-26 03:37:22,285 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] MainApp.ConfigLoader - initialize_global_log.log_message:190 - Loading project configuration from: /app/src/configs/project_config.yaml
+2025-06-26 03:37:22,292 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] MainApp.ConfigLoader - initialize_global_log.log_message:190 - Project configuration loaded successfully from /app/src/configs/project_config.yaml.
+2025-06-26 03:37:22,292 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Data fetch range: Start='2020-01-01', End='2025-06-26'.
+2025-06-26 03:37:22,292 (Taipei: 2025-06-26 11:37:22 UTC+0000) [DEBUG] MainApp.main_flow - initialize_global_log.log_message:190 - Temporarily set environment variable 'FRED_API_KEY' for FRED API access.
+2025-06-26 03:37:22,293 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.__init__:35 - DatabaseManager initialized. DB file target: /app/data/financial_data.duckdb
+2025-06-26 03:37:22,365 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.connect:53 - Successfully connected to DuckDB database: /app/data/financial_data.duckdb
+2025-06-26 03:37:22,365 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:80 - Dropping and recreating tables to ensure fresh schema...
+2025-06-26 03:37:22,375 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:83 - Old tables (if any) dropped.
+2025-06-26 03:37:22,379 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:98 - Table 'fact_macro_economic_data' checked/created.
+2025-06-26 03:37:22,380 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:121 - Table 'fact_stock_price' checked/created.
+2025-06-26 03:37:22,381 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 階段 1: 數據獲取 ---
+2025-06-26 03:37:22,381 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.__init__:41 - FredConnector initialized successfully with API key.
+2025-06-26 03:37:22,381 (Taipei: 2025-06-26 11:37:22 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.fetch_data:56 - Fetching FRED data for series_ids: ['DGS10', 'DGS2', 'SOFR', 'VIXCLS', 'WRESBAL'] from 2020-01-01 to 2025-06-26.
+2025-06-26 03:37:22,381 (Taipei: 2025-06-26 11:37:22 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: DGS10
+2025-06-26 03:37:22,868 (Taipei: 2025-06-26 11:37:22 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: DGS10, 1370 rows.
+2025-06-26 03:37:22,869 (Taipei: 2025-06-26 11:37:22 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: DGS2
+2025-06-26 03:37:23,247 (Taipei: 2025-06-26 11:37:23 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: DGS2, 1370 rows.
+2025-06-26 03:37:23,247 (Taipei: 2025-06-26 11:37:23 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: SOFR
+2025-06-26 03:37:23,568 (Taipei: 2025-06-26 11:37:23 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: SOFR, 1368 rows.
+2025-06-26 03:37:23,568 (Taipei: 2025-06-26 11:37:23 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: VIXCLS
+2025-06-26 03:37:23,895 (Taipei: 2025-06-26 11:37:23 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: VIXCLS, 1400 rows.
+2025-06-26 03:37:23,895 (Taipei: 2025-06-26 11:37:23 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: WRESBAL
+2025-06-26 03:37:24,058 (Taipei: 2025-06-26 11:37:24 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: WRESBAL, 286 rows.
+2025-06-26 03:37:24,059 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.fetch_data:102 - Successfully fetched and processed 5794 total records from FRED for series_ids: ['DGS10', 'DGS2', 'SOFR', 'VIXCLS', 'WRESBAL'].
+2025-06-26 03:37:24,059 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Fetched 5794 FRED records.
+2025-06-26 03:37:24,060 (Taipei: 2025-06-26 11:37:24 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:138 - Attempting to bulk insert/replace into fact_macro_economic_data, 5794 rows. Unique cols: ['metric_date', 'metric_name', 'source_api']
+2025-06-26 03:37:24,073 (Taipei: 2025-06-26 11:37:24 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:184 - Executing SQL (UPSERT style): INSERT INTO fact_macro_economic_data SELECT * FROM temp_fact_macro_economic_data_784856d3 ON CONFLICT (metric_date, metric_name, source_api) DO UPDATE SET metric_value = excluded.metric_value, data_snapshot_timestamp = excluded.data_snapshot_timestamp;
+2025-06-26 03:37:24,164 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:188 - Successfully inserted/replaced 5794 rows into fact_macro_economic_data.
+2025-06-26 03:37:24,165 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:168 - Fetching NYFed data from 3 configured URLs.
+2025-06-26 03:37:24,165 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:182 - Processing NYFed file: prideal2024.xlsx from URL: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx (format: PD_STATS_FORMAT_2013_ONWARDS)
+2025-06-26 03:37:24,165 (Taipei: 2025-06-26 11:37:24 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:61 - Attempt 1/3 to access NYFed resource page: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx
+2025-06-26 03:37:24,167 (Taipei: 2025-06-26 11:37:24 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._new_conn:1049 - Starting new HTTPS connection (1): www.newyorkfed.org:443
+2025-06-26 03:37:24,435 (Taipei: 2025-06-26 11:37:24 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /medialibrary/media/markets/prideal/prideal2024.xlsx HTTP/1.1" 302 None
+2025-06-26 03:37:24,438 (Taipei: 2025-06-26 11:37:24 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._get_conn:289 - Resetting dropped connection: www.newyorkfed.org
+2025-06-26 03:37:24,553 (Taipei: 2025-06-26 11:37:24 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /errors/404 HTTP/1.1" 200 16264
+2025-06-26 03:37:24,554 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:63 - NYFed Page URL: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx, Attempt: 1, Status: 200, Content-Type: text/html; charset=utf-8
+2025-06-26 03:37:24,554 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:68 - Content from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx is HTML. Attempting to find Excel link...
+2025-06-26 03:37:24,595 (Taipei: 2025-06-26 11:37:24 UTC+0000) [CRITICAL] MainApp.main_flow - initialize_global_log.log_message:190 - 主流程 main() 發生嚴重執行期錯誤: name 'url_config' is not defined
+Traceback (most recent call last):
+  File "/app/src/main.py", line 222, in main
+    nyfed_data_df, nyfed_error_msg = nyfed_conn.fetch_data()
+                                     ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/connectors/nyfed_connector.py", line 183, in fetch_data
+    excel_file_content = self._download_excel_with_retries(url)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/connectors/nyfed_connector.py", line 72, in _download_excel_with_retries
+    file_pattern_hint = url_config.get('file_pattern', '')
+                        ^^^^^^^^^^
+NameError: name 'url_config' is not defined
+2025-06-26 03:37:24,649 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.disconnect:65 - Disconnected from DuckDB database: /app/data/financial_data.duckdb
+2025-06-26 03:37:24,649 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 端到端原型執行完畢 (Atomic Script Version) ---
+2025-06-26 03:37:24,649 (Taipei: 2025-06-26 11:37:24 UTC+0000) [INFO] MainApp.Cleanup - initialize_global_log.log_message:190 - Removing detailed run log handler. Transcript saved to /app/market_briefing_log.txt

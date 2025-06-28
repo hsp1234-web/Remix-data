@@ -1,0 +1,177 @@
+2025-06-26 02:27:13,845 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] GlobalLogSetup - initialize_global_log.initialize_log_file:134 - Global logger initialized. Log file: /app/api_test_logs/2025-06-26T022713Z_application_log.txt
+2025-06-26 02:27:13,845 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] MainApp.Setup - initialize_global_log.log_message:190 - main.py: Global application logger (from initialize_global_log) explicitly initialized. Log file: /app/api_test_logs/2025-06-26T022713Z_application_log.txt
+2025-06-26 02:27:13,845 (Taipei: 2025-06-26 10:27:13 UTC+0000) [WARNING] MainApp.InitCheck - initialize_global_log.log_message:190 - Global application log file path from module was not set. Bootstrap logger might be active for app logs.
+2025-06-26 02:27:13,846 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] MainApp.Setup - initialize_global_log.log_message:190 - Detailed execution transcript for this run will ALSO be saved to: /app/market_briefing_log.txt
+2025-06-26 02:27:13,846 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - --- 開始執行端到端金融數據處理原型 (Atomic Script Version) ---
+2025-06-26 02:27:13,846 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] MainApp.ConfigLoader - initialize_global_log.log_message:190 - Loading project configuration from: /app/src/configs/project_config.yaml
+2025-06-26 02:27:13,865 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] MainApp.ConfigLoader - initialize_global_log.log_message:190 - Project configuration loaded successfully from /app/src/configs/project_config.yaml.
+2025-06-26 02:27:13,865 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Data fetch range: Start='2020-01-01', End='2025-06-26'.
+2025-06-26 02:27:13,865 (Taipei: 2025-06-26 10:27:13 UTC+0000) [DEBUG] MainApp.main_flow - initialize_global_log.log_message:190 - Temporarily set environment variable 'FRED_API_KEY' for FRED API access.
+2025-06-26 02:27:13,866 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.__init__:35 - DatabaseManager initialized. DB file target: /app/data/financial_data.duckdb
+2025-06-26 02:27:13,896 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.connect:53 - Successfully connected to DuckDB database: /app/data/financial_data.duckdb
+2025-06-26 02:27:13,896 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:80 - Dropping and recreating tables to ensure fresh schema...
+2025-06-26 02:27:13,920 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:83 - Old tables (if any) dropped.
+2025-06-26 02:27:13,926 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:98 - Table 'fact_macro_economic_data' checked/created.
+2025-06-26 02:27:13,938 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:121 - Table 'fact_stock_price' checked/created.
+2025-06-26 02:27:13,942 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager._create_tables_if_not_exist:142 - Table 'log_ai_decision' checked/created.
+2025-06-26 02:27:13,942 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 階段 1: 數據獲取 ---
+2025-06-26 02:27:13,943 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.__init__:41 - FredConnector initialized successfully with API key.
+2025-06-26 02:27:13,943 (Taipei: 2025-06-26 10:27:13 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.fetch_data:56 - Fetching FRED data for series_ids: ['DGS10', 'DGS2', 'SOFR', 'VIXCLS', 'WRESBAL'] from 2020-01-01 to 2025-06-26.
+2025-06-26 02:27:13,943 (Taipei: 2025-06-26 10:27:13 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: DGS10
+2025-06-26 02:27:14,766 (Taipei: 2025-06-26 10:27:14 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: DGS10, 1370 rows.
+2025-06-26 02:27:14,767 (Taipei: 2025-06-26 10:27:14 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: DGS2
+2025-06-26 02:27:15,379 (Taipei: 2025-06-26 10:27:15 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: DGS2, 1370 rows.
+2025-06-26 02:27:15,379 (Taipei: 2025-06-26 10:27:15 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: SOFR
+2025-06-26 02:27:15,952 (Taipei: 2025-06-26 10:27:15 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: SOFR, 1368 rows.
+2025-06-26 02:27:15,953 (Taipei: 2025-06-26 10:27:15 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: VIXCLS
+2025-06-26 02:27:16,943 (Taipei: 2025-06-26 10:27:16 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: VIXCLS, 1400 rows.
+2025-06-26 02:27:16,943 (Taipei: 2025-06-26 10:27:16 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:63 - Fetching data for FRED series_id: WRESBAL
+2025-06-26 02:27:17,231 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] project_logger.FredConnector - fred_connector.fetch_data:82 - Successfully fetched and processed FRED series_id: WRESBAL, 286 rows.
+2025-06-26 02:27:17,234 (Taipei: 2025-06-26 10:27:17 UTC+0000) [INFO] project_logger.FredConnector - fred_connector.fetch_data:102 - Successfully fetched and processed 5794 total records from FRED for series_ids: ['DGS10', 'DGS2', 'SOFR', 'VIXCLS', 'WRESBAL'].
+2025-06-26 02:27:17,235 (Taipei: 2025-06-26 10:27:17 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Fetched 5794 FRED records.
+2025-06-26 02:27:17,235 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:159 - Attempting to bulk insert/replace into fact_macro_economic_data, 5794 rows. Unique cols: ['metric_date', 'metric_name', 'source_api']
+2025-06-26 02:27:17,259 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:205 - Executing SQL (UPSERT style): INSERT INTO fact_macro_economic_data SELECT * FROM temp_fact_macro_economic_data_bf18b036 ON CONFLICT (metric_date, metric_name, source_api) DO UPDATE SET metric_value = excluded.metric_value, data_snapshot_timestamp = excluded.data_snapshot_timestamp;
+2025-06-26 02:27:17,401 (Taipei: 2025-06-26 10:27:17 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:209 - Successfully inserted/replaced 5794 rows into fact_macro_economic_data.
+2025-06-26 02:27:17,401 (Taipei: 2025-06-26 10:27:17 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:92 - Fetching NYFed data from 3 configured URLs.
+2025-06-26 02:27:17,402 (Taipei: 2025-06-26 10:27:17 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:106 - Processing NYFed file: prideal2024.xlsx from URL: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx (format: PD_STATS_FORMAT_2013_ONWARDS)
+2025-06-26 02:27:17,402 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:55 - Attempt 1/3 to download NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx
+2025-06-26 02:27:17,408 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._new_conn:1049 - Starting new HTTPS connection (1): www.newyorkfed.org:443
+2025-06-26 02:27:17,673 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /medialibrary/media/markets/prideal/prideal2024.xlsx HTTP/1.1" 302 None
+2025-06-26 02:27:17,678 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._get_conn:289 - Resetting dropped connection: www.newyorkfed.org
+2025-06-26 02:27:17,795 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /errors/404 HTTP/1.1" 200 16269
+2025-06-26 02:27:17,798 (Taipei: 2025-06-26 10:27:17 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:59 - Successfully downloaded from NYFed URL https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx (status 200). Content-Type: text/html; charset=utf-8. Size: 95319 bytes.
+2025-06-26 02:27:17,798 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:61 - NYFed downloaded content head (first 100 bytes): b'<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n    \r\n<meta http-equiv="X-UA-Compatible" content="IE=edge'
+2025-06-26 02:27:17,799 (Taipei: 2025-06-26 10:27:17 UTC+0000) [ERROR] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:65 - Downloaded content from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx does not appear to be an Excel file based on Content-Type: 'text/html; charset=utf-8'. Skipping.
+2025-06-26 02:27:17,800 (Taipei: 2025-06-26 10:27:17 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:106 - Processing NYFed file: prideal2023.xlsx from URL: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2023.xlsx (format: PD_STATS_FORMAT_2013_ONWARDS)
+2025-06-26 02:27:17,800 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:55 - Attempt 1/3 to download NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2023.xlsx
+2025-06-26 02:27:17,802 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._new_conn:1049 - Starting new HTTPS connection (1): www.newyorkfed.org:443
+2025-06-26 02:27:17,995 (Taipei: 2025-06-26 10:27:17 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /medialibrary/media/markets/prideal/prideal2023.xlsx HTTP/1.1" 302 None
+2025-06-26 02:27:18,001 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._get_conn:289 - Resetting dropped connection: www.newyorkfed.org
+2025-06-26 02:27:18,110 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /errors/404 HTTP/1.1" 200 16263
+2025-06-26 02:27:18,112 (Taipei: 2025-06-26 10:27:18 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:59 - Successfully downloaded from NYFed URL https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2023.xlsx (status 200). Content-Type: text/html; charset=utf-8. Size: 95319 bytes.
+2025-06-26 02:27:18,113 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:61 - NYFed downloaded content head (first 100 bytes): b'<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n    \r\n<meta http-equiv="X-UA-Compatible" content="IE=edge'
+2025-06-26 02:27:18,113 (Taipei: 2025-06-26 10:27:18 UTC+0000) [ERROR] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:65 - Downloaded content from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2023.xlsx does not appear to be an Excel file based on Content-Type: 'text/html; charset=utf-8'. Skipping.
+2025-06-26 02:27:18,114 (Taipei: 2025-06-26 10:27:18 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector.fetch_data:106 - Processing NYFed file: prideal2022.xlsx from URL: https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2022.xlsx (format: PD_STATS_FORMAT_2013_ONWARDS)
+2025-06-26 02:27:18,114 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:55 - Attempt 1/3 to download NYFed Excel from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2022.xlsx
+2025-06-26 02:27:18,117 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._new_conn:1049 - Starting new HTTPS connection (1): www.newyorkfed.org:443
+2025-06-26 02:27:18,321 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /medialibrary/media/markets/prideal/prideal2022.xlsx HTTP/1.1" 302 None
+2025-06-26 02:27:18,327 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._get_conn:289 - Resetting dropped connection: www.newyorkfed.org
+2025-06-26 02:27:18,433 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] urllib3.connectionpool - connectionpool._make_request:544 - https://www.newyorkfed.org:443 "GET /errors/404 HTTP/1.1" 200 16258
+2025-06-26 02:27:18,435 (Taipei: 2025-06-26 10:27:18 UTC+0000) [INFO] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:59 - Successfully downloaded from NYFed URL https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2022.xlsx (status 200). Content-Type: text/html; charset=utf-8. Size: 95319 bytes.
+2025-06-26 02:27:18,436 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:61 - NYFed downloaded content head (first 100 bytes): b'<!DOCTYPE html>\r\n<html lang="en">\r\n<head>\r\n    \r\n<meta http-equiv="X-UA-Compatible" content="IE=edge'
+2025-06-26 02:27:18,436 (Taipei: 2025-06-26 10:27:18 UTC+0000) [ERROR] project_logger.NYFedConnector - nyfed_connector._download_excel_with_retries:65 - Downloaded content from https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2022.xlsx does not appear to be an Excel file based on Content-Type: 'text/html; charset=utf-8'. Skipping.
+2025-06-26 02:27:18,437 (Taipei: 2025-06-26 10:27:18 UTC+0000) [WARNING] project_logger.NYFedConnector - nyfed_connector.fetch_data:167 - No data from any NYFed files.
+2025-06-26 02:27:18,440 (Taipei: 2025-06-26 10:27:18 UTC+0000) [ERROR] MainApp.main_flow - initialize_global_log.log_message:190 - NYFed Data Fetching Error: No data from NYFed.
+2025-06-26 02:27:18,441 (Taipei: 2025-06-26 10:27:18 UTC+0000) [INFO] project_logger.YFinanceConnector - yfinance_connector.fetch_data:34 - Fetching yfinance data for tickers: ['^MOVE'] from 2020-01-01 to 2025-06-26 with interval 1d.
+2025-06-26 02:27:18,441 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] project_logger.YFinanceConnector - yfinance_connector.fetch_data:51 - Fetching yfinance data for: ^MOVE
+2025-06-26 02:27:18,442 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 - Entering history()
+2025-06-26 02:27:18,446 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] peewee - peewee.execute_sql:3319 - ('CREATE TABLE IF NOT EXISTS "_tz_kv" ("key" VARCHAR(255) NOT NULL PRIMARY KEY, "value" VARCHAR(255)) WITHOUT ROWID', [])
+2025-06-26 02:27:18,447 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] peewee - peewee.execute_sql:3319 - ('SELECT "t1"."key", "t1"."value" FROM "_tz_kv" AS "t1" WHERE ("t1"."key" = ?) LIMIT ? OFFSET ?', ['^MOVE', 1, 0])
+2025-06-26 02:27:18,523 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -  Entering history()
+2025-06-26 02:27:18,529 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - history.history:167 - ^MOVE: Yahoo GET parameters: {'period1': '2020-01-01 00:00:00-05:00', 'period2': '2025-06-26 00:00:00-04:00', 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2025-06-26 02:27:18,530 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -   Entering get()
+2025-06-26 02:27:18,530 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -    Entering _make_request()
+2025-06-26 02:27:18,531 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - data._make_request:383 - url=https://query2.finance.yahoo.com/v8/finance/chart/^MOVE
+2025-06-26 02:27:18,531 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - data._make_request:384 - params={'period1': 1577854800, 'period2': 1750910400, 'interval': '1d', 'includePrePost': False, 'events': 'div,splits,capitalGains'}
+2025-06-26 02:27:18,531 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -     Entering _get_cookie_and_crumb()
+2025-06-26 02:27:18,532 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - data._get_cookie_and_crumb:349 - cookie_mode = 'basic'
+2025-06-26 02:27:18,532 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -      Entering _get_cookie_and_crumb_basic()
+2025-06-26 02:27:18,533 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -       Entering _get_cookie_basic()
+2025-06-26 02:27:18,533 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -        Entering _load_cookie_curlCffi()
+2025-06-26 02:27:18,536 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] peewee - peewee.execute_sql:3319 - ('CREATE TABLE IF NOT EXISTS "_cookieschema" ("strategy" VARCHAR(255) NOT NULL PRIMARY KEY, "fetch_date" DATETIME NOT NULL, "cookie_bytes" BLOB NOT NULL) WITHOUT ROWID', [])
+2025-06-26 02:27:18,537 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] peewee - peewee.execute_sql:3319 - ('SELECT "t1"."strategy", "t1"."fetch_date", "t1"."cookie_bytes" FROM "_cookieschema" AS "t1" WHERE ("t1"."strategy" = ?) LIMIT ? OFFSET ?', ['curlCffi', 1, 0])
+2025-06-26 02:27:18,538 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -        Exiting _load_cookie_curlCffi()
+2025-06-26 02:27:18,539 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - data._get_cookie_basic:190 - reusing persistent cookie
+2025-06-26 02:27:18,539 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -       Exiting _get_cookie_basic()
+2025-06-26 02:27:18,539 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -       Entering _get_crumb_basic()
+2025-06-26 02:27:18,540 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:89 -        Entering _get_cookie_basic()
+2025-06-26 02:27:18,540 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - data._get_cookie_basic:187 - reusing cookie
+2025-06-26 02:27:18,540 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -        Exiting _get_cookie_basic()
+2025-06-26 02:27:18,694 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - data._get_crumb_basic:234 - crumb = 'Gb9Fnqy0BM9'
+2025-06-26 02:27:18,694 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -       Exiting _get_crumb_basic()
+2025-06-26 02:27:18,695 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -      Exiting _get_cookie_and_crumb_basic()
+2025-06-26 02:27:18,695 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -     Exiting _get_cookie_and_crumb()
+2025-06-26 02:27:18,994 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - data._make_request:407 - response code=200
+2025-06-26 02:27:18,994 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -    Exiting _make_request()
+2025-06-26 02:27:18,995 (Taipei: 2025-06-26 10:27:18 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -   Exiting get()
+2025-06-26 02:27:19,024 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] yfinance - history.history:283 - ^MOVE: yfinance received OHLC data: 2020-01-02 14:30:00 -> 2025-06-25 13:30:00
+2025-06-26 02:27:19,029 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] yfinance - history.history:320 - ^MOVE: OHLC after cleaning: 2020-01-02 09:30:00-05:00 -> 2025-06-25 09:30:00-04:00
+2025-06-26 02:27:19,051 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] yfinance - history.history:390 - ^MOVE: OHLC after combining events: 2020-01-02 00:00:00-05:00 -> 2025-06-25 00:00:00-04:00
+2025-06-26 02:27:19,068 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] yfinance - history.history:469 - ^MOVE: yfinance returning OHLC: 2020-01-02 00:00:00-05:00 -> 2025-06-25 00:00:00-04:00
+2025-06-26 02:27:19,070 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 -  Exiting history()
+2025-06-26 02:27:19,071 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] yfinance - utils.wrapper:94 - Exiting history()
+2025-06-26 02:27:19,104 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.YFinanceConnector - yfinance_connector.fetch_data:112 - Processed yfinance data for ^MOVE, 1368 rows.
+2025-06-26 02:27:19,113 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] project_logger.YFinanceConnector - yfinance_connector.fetch_data:138 - Successfully fetched and processed 1368 total records from yfinance for tickers: ['^MOVE'].
+2025-06-26 02:27:19,114 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Fetched 1368 YFinance records for ['^MOVE'].
+2025-06-26 02:27:19,114 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:159 - Attempting to bulk insert/replace into fact_stock_price, 1368 rows. Unique cols: ['price_date', 'security_id', 'source_api']
+2025-06-26 02:27:19,168 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:205 - Executing SQL (UPSERT style): INSERT INTO fact_stock_price SELECT * FROM temp_fact_stock_price_1acd1ae9 ON CONFLICT (price_date, security_id, source_api) DO UPDATE SET open_price = excluded.open_price, high_price = excluded.high_price, low_price = excluded.low_price, close_price = excluded.close_price, adj_close_price = excluded.adj_close_price, volume = excluded.volume, dividends = excluded.dividends, stock_splits = excluded.stock_splits, data_snapshot_timestamp = excluded.data_snapshot_timestamp;
+2025-06-26 02:27:19,243 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.bulk_insert_or_replace:209 - Successfully inserted/replaced 1368 rows into fact_stock_price.
+2025-06-26 02:27:19,244 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 階段 2 & 3: 指標計算與市場簡報 ---
+2025-06-26 02:27:19,244 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.fetch_all_for_engine:229 - Fetching all data for engine from fact_macro_economic_data, date_col: metric_date, start: 2020-01-01, end: 2025-06-26
+2025-06-26 02:27:19,264 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.fetch_all_for_engine:249 - Successfully fetched 5794 rows from fact_macro_economic_data.
+2025-06-26 02:27:19,264 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.DatabaseManager - database_manager.fetch_all_for_engine:229 - Fetching all data for engine from fact_stock_price, date_col: price_date, start: 2020-01-01, end: 2025-06-26
+2025-06-26 02:27:19,283 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.fetch_all_for_engine:249 - Successfully fetched 1368 rows from fact_stock_price.
+2025-06-26 02:27:19,289 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:134 - IndicatorEngine: Calculating Dealer Stress Index...
+2025-06-26 02:27:19,289 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] project_logger.IndicatorEngine - indicator_engine._prepare_data:39 - IndicatorEngine: Preparing data for stress index calculation...
+2025-06-26 02:27:19,346 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.IndicatorEngine - indicator_engine._prepare_data:73 - IndicatorEngine: Pivoted macro data shape: (1405, 5)
+2025-06-26 02:27:19,365 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.IndicatorEngine - indicator_engine._prepare_data:90 - IndicatorEngine: Prepared ^MOVE index data. Non-NaN count: 1368
+2025-06-26 02:27:19,370 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.IndicatorEngine - indicator_engine._prepare_data:115 - IndicatorEngine: Combined macro and MOVE data. Shape: (1406, 6)
+2025-06-26 02:27:19,374 (Taipei: 2025-06-26 10:27:19 UTC+0000) [INFO] project_logger.IndicatorEngine - indicator_engine._prepare_data:130 - IndicatorEngine: Data preparation complete. Final shape: (1406, 6)
+2025-06-26 02:27:19,375 (Taipei: 2025-06-26 10:27:19 UTC+0000) [DEBUG] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:162 - IndicatorEngine: Stress Index Params: Window=252, Weights={'sofr_deviation': 0.2, 'spread_10y2y': 0.2, 'primary_dealer_position': 0.15, 'move_index': 0.25, 'vix_index': 0.15, 'pos_res_ratio': 0.05}, MinPeriodsRatio=0.5
+2025-06-26 02:27:19,382 (Taipei: 2025-06-26 10:27:19 UTC+0000) [WARNING] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:188 - IndicatorEngine: NYFED/PRIMARY_DEALER_NET_POSITION or FRED/WRESBAL missing. 'pos_res_ratio' will be NaN.
+2025-06-26 02:27:21,107 (Taipei: 2025-06-26 10:27:21 UTC+0000) [DEBUG] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:218 - IndicatorEngine: Calculated rolling percentile for sofr_deviation (FRED/SOFR_Dev).
+2025-06-26 02:27:22,313 (Taipei: 2025-06-26 10:27:22 UTC+0000) [DEBUG] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:218 - IndicatorEngine: Calculated rolling percentile for spread_10y2y (spread_10y2y).
+2025-06-26 02:27:22,313 (Taipei: 2025-06-26 10:27:22 UTC+0000) [WARNING] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:223 - IndicatorEngine: Component primary_dealer_position (NYFED/PRIMARY_DEALER_NET_POSITION) not found in prepared data or is all NaN. Skipping rank.
+2025-06-26 02:27:22,790 (Taipei: 2025-06-26 10:27:22 UTC+0000) [DEBUG] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:218 - IndicatorEngine: Calculated rolling percentile for move_index (^MOVE).
+2025-06-26 02:27:23,258 (Taipei: 2025-06-26 10:27:23 UTC+0000) [DEBUG] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:218 - IndicatorEngine: Calculated rolling percentile for vix_index (FRED/VIXCLS).
+2025-06-26 02:27:23,258 (Taipei: 2025-06-26 10:27:23 UTC+0000) [WARNING] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:223 - IndicatorEngine: Component pos_res_ratio (pos_res_ratio) not found in prepared data or is all NaN. Skipping rank.
+2025-06-26 02:27:23,258 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:237 - IndicatorEngine: Normalized Stress Index Weights (for active components): {'sofr_deviation': 0.25, 'spread_10y2y': 0.25, 'move_index': 0.3125, 'vix_index': 0.18749999999999997}
+2025-06-26 02:27:23,267 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] project_logger.IndicatorEngine - indicator_engine.calculate_dealer_stress_index:275 - IndicatorEngine: Dealer Stress Index calculated successfully. Final shape: (1281, 7)
+2025-06-26 02:27:23,268 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Dealer Stress Index calculated. Shape: (1281, 7). Latest date: 2025-06-25
+2025-06-26 02:27:23,271 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Stress Index Tail:
+            DealerStressIndex  sofr_deviation_pct_rank  spread_10y2y_pct_rank  primary_dealer_position_pct_rank  move_index_pct_rank  vix_index_pct_rank  pos_res_ratio_pct_rank
+date
+2025-06-19          38.058036                 0.404762               0.196429                               NaN             0.244048            0.821429                     NaN
+2025-06-20          34.312996                 0.539683               0.152778                               NaN             0.101190            0.738095                     NaN
+2025-06-23          38.293651                 0.517857               0.117063                               NaN             0.305556            0.686508                     NaN
+2025-06-24          31.820437                 0.654762               0.037698                               NaN             0.196429            0.446429                     NaN
+2025-06-25          30.704365                 0.666667               0.039683                               NaN             0.150794            0.444444                     NaN
+2025-06-26 02:27:23,272 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.HistoricalLoop - initialize_global_log.log_message:190 - Starting AI decision generation for 1281 historical dates.
+2025-06-26 02:27:23,272 (Taipei: 2025-06-26 10:27:23 UTC+0000) [WARNING] MainApp.HistoricalLoop - initialize_global_log.log_message:190 - AI Service API key (env var: ANTHROPIC_API_KEY) or endpoint (https://api.anthropic.com/v1/messages) is not configured. Skipping AI decision loop.
+2025-06-26 02:27:23,275 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.HistoricalLoop - initialize_global_log.log_message:190 - AI agent not configured, skipping AI decision logging for all historical dates.
+2025-06-26 02:27:23,749 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.Briefing - initialize_global_log.log_message:190 -
+--- 最新市場簡報 (Market Briefing - JSON) ---
+2025-06-26 02:27:23,750 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.BriefingOutput - initialize_global_log.log_message:190 - {
+  "briefing_date": "2025-06-25",
+  "data_window_end_date": "2025-06-25",
+  "dealer_stress_index": {
+    "current_value_description": "30.70 (正常)",
+    "trend_approximation": "下降"
+  },
+  "key_financial_components_latest": [
+    {
+      "component_name": "MOVE Index (Bond Mkt Volatility)",
+      "value_string": "91.24"
+    },
+    {
+      "component_name": "10Y-2Y Treasury Spread",
+      "value_string": "55.00 bps"
+    },
+    {
+      "component_name": "Primary Dealer Net Positions (Millions USD)",
+      "value_string": "N/A"
+    }
+  ],
+  "broader_market_context_latest": {
+    "vix_index (Equity Mkt Volatility)": "17.48",
+    "sofr_deviation_from_ma": "0.00"
+  },
+  "summary_narrative": "市場壓力指數 (2025-06-25): 30.70 (正常). 主要影響因素包括債券市場波動率 (MOVE Index: 91.24) 及 10年期與2年期公債利差 (55.00 bps). 一級交易商淨持倉部位為 N/A 百萬美元。"
+}
+2025-06-26 02:27:23,750 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.HistoricalLoop - initialize_global_log.log_message:190 - Finished historical AI decision loop. Total AI API calls attempted: 1281
+2025-06-26 02:27:23,789 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.disconnect:65 - Disconnected from DuckDB database: /app/data/financial_data.duckdb
+2025-06-26 02:27:23,789 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 端到端原型執行完畢 (Atomic Script Version) ---
+2025-06-26 02:27:23,789 (Taipei: 2025-06-26 10:27:23 UTC+0000) [INFO] MainApp.Cleanup - initialize_global_log.log_message:190 - Removing detailed run log handler. Transcript saved to /app/market_briefing_log.txt

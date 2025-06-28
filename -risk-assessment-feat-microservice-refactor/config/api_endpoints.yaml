@@ -1,0 +1,90 @@
+# API 端點設定檔 (api_endpoints.yaml)
+
+# 本文件定義了 UnifiedAPIFetcher 如何從不同數據源獲取特定指標。
+# 每個頂層鍵是一個內部統一的指標名稱 (例如 VIX_YF, FRAOIS)。
+# 每個指標下可以有一個或多個數據源 (source) 作為備選，按順序嘗試。
+# 每個 source 包含其類型 (api_provider) 和該 provider 需要的特定參數。
+
+# --- API Key 環境變數名稱 (參考 project_config.yaml) ---
+# api_keys_env_vars:
+#   fred: "FRED_API_KEY"
+#   alpha_vantage: "ALPHA_VANTAGE_API_KEY"
+#   yfinance: null # yfinance 通常不需要 key
+#   # ... 其他 ...
+
+# --- 指標定義 ---
+indicators:
+  # --- FRED 指標 ---
+  FRAOIS:
+    - api_provider: "fred" # 對應 FredAdapter
+      series_id: "FRAOIS"
+      # 可選：fred_specific_param: value
+
+  TEDRATE:
+    - api_provider: "fred"
+      series_id: "TEDRATE"
+
+  SOFR:
+    - api_provider: "fred"
+      series_id: "SOFR"
+
+  DGS10:
+    - api_provider: "fred"
+      series_id: "DGS10"
+
+  DGS2:
+    - api_provider: "fred"
+      series_id: "DGS2"
+
+  WRESBAL: # 週頻數據，獲取後可能需要 ffill
+    - api_provider: "fred"
+      series_id: "WRESBAL"
+
+  RRPONTSYD: # 隔夜逆回購
+    - api_provider: "fred"
+      series_id: "RRPONTSYD"
+
+  VIXCLS: # FRED 提供的 VIX 收盤價
+    - api_provider: "fred"
+      series_id: "VIXCLS"
+
+  # --- Yahoo Finance 指標 ---
+  VIX_YF: # ^VIX (CBOE Volatility Index)
+    - api_provider: "yfinance" # 對應 YFinanceAdapter
+      ticker: "^VIX"
+      # 可選：yfinance_specific_param: value (e.g., interval: "1d")
+
+  TLT_YF: # iShares 20+ Year Treasury Bond ETF (用於計算MOVE替代品)
+    - api_provider: "yfinance"
+      ticker: "TLT"
+      # data_column: "Close" # 指定需要提取的列，可以在adapter中處理
+
+  SPY_YF: # SPDR S&P 500 ETF Trust
+    - api_provider: "yfinance"
+      ticker: "SPY"
+
+  # --- Alpha Vantage 指標示例 (如果決定使用) ---
+  # IBM_AV_DAILY_ADJUSTED:
+  #   - api_provider: "alpha_vantage"
+  #     function: "TIME_SERIES_DAILY_ADJUSTED"
+  #     symbol: "IBM"
+  #     outputsize: "compact" # "compact" or "full"
+  #     # data_column: "5. adjusted close"
+
+  # --- 更多指標可以在此處添加 ---
+  # 例如，如果未來加入 FinnhubAdapter:
+  # AAPL_FINNHUB_QUOTE:
+  #   - api_provider: "finnhub"
+  #     endpoint_type: "quote" # Adapter 內部用此來決定調用哪個 finnhub client 方法
+  #     symbol: "AAPL"
+
+# --- 各 API Provider 的全局設定 (可選，優先級低於 indicator 內部設定) ---
+# api_provider_defaults:
+#   yfinance:
+#     default_interval: "1d"
+#     prefer_adjusted_close: true
+#   alpha_vantage:
+#     default_outputsize: "compact"
+#   fred:
+#     # FRED 通常不需要全局預設，因為 series_id 已決定一切
+#     pass

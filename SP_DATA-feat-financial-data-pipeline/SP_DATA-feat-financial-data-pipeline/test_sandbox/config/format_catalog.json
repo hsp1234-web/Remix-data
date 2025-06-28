@@ -1,0 +1,37 @@
+{
+  "daily_trades_v1": {
+    "file_pattern": "^Daily_Trades_.*\\.csv$",
+    "parser": "csv",
+    "parse_options": {
+      "delimiter": ",",
+      "skiprows": 1,
+      "header": 0,
+      "names": ["trade_date", "product_id", "open_price", "high_price", "low_price", "close_price", "volume"]
+    },
+    "fingerprint_bytes": 256,
+    "fingerprint_fields": ["product_id", "volume"]
+  },
+  "options_report_v2": {
+    "file_pattern": "^Options_Report_.*\\.rpt$",
+    "parser": "fixed_width",
+    "parse_options": {
+      "colspecs": [
+        [0, 10],
+        [11, 30],
+        [31, 40],
+        [41, 50]
+      ],
+      "names": ["date", "option_code", "strike_price", "premium"],
+      "skiprows": 0
+    },
+    "fingerprint_bytes": 128,
+    "fingerprint_fields": ["option_code"]
+  },
+  "generic_text_log": {
+    "file_pattern": ".*\\.log$",
+    "parser": "text_lines",
+    "parse_options": {},
+    "fingerprint_bytes": 64,
+    "fingerprint_fields": []
+  }
+}

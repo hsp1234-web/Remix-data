@@ -1,0 +1,8 @@
+# 核心套件
+yfinance
+duckdb
+pandas
+
+# 測試與品質保證套件
+pytest
+flake8

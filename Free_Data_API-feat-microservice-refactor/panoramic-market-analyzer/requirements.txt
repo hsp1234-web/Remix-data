@@ -1,0 +1,8 @@
+pyyaml
+pandas
+numpy
+yfinance
+requests
+requests-cache
+fredapi
+duckdb

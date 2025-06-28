@@ -1,0 +1,41 @@
+=================================================
+執行開始時間: Thu Jun 26 06:58:58 UTC 2025
+=================================================
+[1/5] 正在建立專案目錄結構...
+[2/5] 正在建立 pyproject.toml...
+[3/5] 正在生成重構後的 finmind_connector.py...
+[4/5] 正在生成單元測試 test_finmind_connector.py...
+[5/5] 正在安裝依賴並執行測試...
+The currently activated Python version 3.12.11 is not supported by the project (>=3.9,<3.12).
+Trying to find and use a compatible version.
+Using python3.10 (3.10.18)
+Updating dependencies
+Resolving dependencies...
+
+Package operations: 1 install, 0 updates, 0 removals
+
+  - Installing tqdm (4.67.1)
+
+Writing lock file
+
+Installing the current project: finmind-fix-validation (0.1.0)
+警告：FINMIND_API_TOKEN 未設定。pytest 將自動跳過需要 API 金鑰的測試。
+The currently activated Python version 3.12.11 is not supported by the project (>=3.9,<3.12).
+Trying to find and use a compatible version.
+Using python3.10 (3.10.18)
+============================= test session starts ==============================
+platform linux -- Python 3.10.18, pytest-8.4.1, pluggy-1.6.0 -- /home/jules/.cache/pypoetry/virtualenvs/finmind-fix-validation-RfSUU2-7-py3.10/bin/python
+cachedir: .pytest_cache
+rootdir: /app/project_finmind_fix
+configfile: pyproject.toml
+collecting ... collected 2 items
+
+tests/test_finmind_connector.py::test_get_financial_statements SKIPPED   [ 50%]
+tests/test_finmind_connector.py::test_get_institutional_investors SKIPPED [100%]
+
+============================== 2 skipped in 1.29s ==============================
+
+=================================================
+執行結束時間: Thu Jun 26 06:59:14 UTC 2025
+日誌已儲存至: finmind_fix_log.txt
+=================================================

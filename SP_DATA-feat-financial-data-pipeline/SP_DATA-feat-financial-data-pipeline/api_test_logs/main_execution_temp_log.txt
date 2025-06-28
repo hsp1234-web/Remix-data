@@ -1,0 +1,10 @@
+2025-06-25 18:16:36,630 [INFO] MainExecution - Temporary logger for main.py initialized. Real logs should go to global log.
+2025-06-25 18:16:36,630 [INFO] PreInitMain - INITIAL: __file__ is /app/main.py
+2025-06-25 18:16:36,630 [INFO] PreInitMain - INITIAL: Calculated PROJECT_ROOT: /app
+2025-06-25 18:16:36,630 [INFO] PreInitMain - sys.path before custom module imports: ['/app', '/app/src', '/app/scripts', '/app', '/home/jules/.pyenv/versions/3.12.11/lib/python312.zip', '/home/jules/.pyenv/versions/3.12.11/lib/python3.12', '/home/jules/.pyenv/versions/3.12.11/lib/python3.12/lib-dynload', '/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages']
+2025-06-25 18:16:37,215 [ERROR] PreInitMain - Failed to import custom modules: No module named 'src.connectors.base'. Ensure PYTHONPATH is set or running from project root. Current sys.path: ['/app', '/app/src', '/app/scripts', '/app', '/home/jules/.pyenv/versions/3.12.11/lib/python312.zip', '/home/jules/.pyenv/versions/3.12.11/lib/python3.12', '/home/jules/.pyenv/versions/3.12.11/lib/python3.12/lib-dynload', '/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages', '/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/FinMind', '/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/FinMind']
+Traceback (most recent call last):
+  File "/app/main.py", line 69, in <module>
+    from src.connectors.base import BaseConnector # For type hinting if needed
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ModuleNotFoundError: No module named 'src.connectors.base'

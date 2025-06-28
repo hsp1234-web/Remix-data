@@ -1,0 +1,81 @@
+# Configuration for the Financial Data Processing Prototype
+
+database:
+  path: "data/financial_data.duckdb"
+
+data_fetch_range:
+  start_date: "2020-01-01" # 根據需要調整進行完整回溯
+  end_date: "2025-06-26" # 根據需要調整，此處為先前範例的結束日期
+
+api_endpoints:
+  fred:
+    api_key_env: "FRED_API_KEY" # main.py 中目前是硬編碼，但保留此結構
+    base_url: "https://api.stlouisfed.org/fred/"
+
+target_metrics:
+  fred_series_ids:
+    - "DGS10"
+    - "DGS2"
+    - "SOFR"
+    - "VIXCLS"
+    - "WRESBAL"
+  yfinance_tickers:
+    - "^MOVE"
+
+nyfed_primary_dealer_urls:
+  - url: "https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2024.xlsx"
+    file_pattern: "prideal2024.xlsx"
+    format_type: "PD_STATS_FORMAT_2013_ONWARDS"
+  - url: "https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2023.xlsx"
+    file_pattern: "prideal2023.xlsx"
+    format_type: "PD_STATS_FORMAT_2013_ONWARDS"
+  - url: "https://www.newyorkfed.org/medialibrary/media/markets/prideal/prideal2022.xlsx"
+    file_pattern: "prideal2022.xlsx"
+    format_type: "PD_STATS_FORMAT_2013_ONWARDS"
+
+nyfed_format_recipes:
+  "PD_STATS_FORMAT_2013_ONWARDS":
+    header_row: 3
+    date_column: "As of Date"
+    columns_to_sum:
+      - "U.S. Treasury coupons"
+      - "U.S. Treasury bills"
+      - "U.S. Treasury floating rate notes (FRNs)"
+      - "Federal agency debt securities (MBS)"
+      - "Federal agency debt securities (non-MBS)"
+      - "Commercial paper"
+      - "Certificates of deposit"
+      - "Bankers acceptances"
+      - "Equities"
+      - "Corporate bonds (investment grade)"
+      - "Corporate bonds (below investment grade)"
+      - "Municipal securities"
+      - "Other assets"
+    data_unit_multiplier: 1000000
+
+indicator_engine_params:
+  rolling_window_days: 252
+  stress_index_weights:
+    sofr_deviation: 0.20
+    spread_10y2y: 0.20
+    primary_dealer_position: 0.15
+    move_index: 0.25
+    vix_index: 0.15
+    pos_res_ratio: 0.05
+  stress_threshold_moderate: 40
+  stress_threshold_high: 60
+  stress_threshold_extreme: 80
+
+requests_config:
+  max_retries: 3
+  base_backoff_seconds: 1
+  timeout: 30
+  download_timeout: 120
+
+ai_service:
+  api_key: "YOUR_API_KEY_HERE" # AI Agent 將從此處讀取
+  api_endpoint: "https://api.anthropic.com/v1/messages"
+  default_model: "claude-3-opus-20240229"
+  max_retries: 3
+  retry_delay_seconds: 5
+  api_call_delay_seconds: 1.0

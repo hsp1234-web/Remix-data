@@ -1,0 +1,87 @@
+# 這是一個設定檔範本。請複製此檔案為 config.yaml，並填入您的 API 金鑰。
+# config.yaml 已被加入 .gitignore，不會被提交到版本庫。
+
+# API 設定:
+# priority: 數字越小，優先級越高。DataMaster 會優先使用 priority 較高的 API。
+# api_key: 您的 API 金鑰。對於不需要金鑰的 API，此欄位可以留空或不填。
+# requests_per_minute: 此 API 允許的每分鐘最大請求次數。
+
+apis:
+  yfinance:
+    priority: 10
+    # yfinance 不需要 API 金鑰
+    requests_per_minute: 100 # Yahoo Finance 的速率限制比較模糊，這裡設定一個保守值
+    # 可選：快取設定
+    # cache_enabled: true
+    # cache_expire_after: 3600 # 秒
+
+  fred:
+    priority: 5
+    api_key: "YOUR_FRED_API_KEY" # 雖然 FRED 某些端點可無金鑰訪問，但建議註冊一個免費金鑰
+    requests_per_minute: 120 # FRED API 速率限制 (e.g., 120 per minute)
+
+  finmind:
+    priority: 15
+    api_key: "YOUR_FINMIND_API_TOKEN" # 您的 FinMind API Token
+    # FinMind API v4 (https://finmindtrade.com/document/#/)
+    # 免費版限制: 每小時 600 calls, 每日 5000 calls, 每秒 10 calls
+    # 換算成分鐘約 600 calls. 但為保險起見設低一些。
+    requests_per_minute: 500
+    # 可選: FinMind 特有的 dataset 參數，如果將來需要更細緻的控制
+    # datasets:
+    #   stock_price: "TaiwanStockPrice"
+    #   financial_statement: "FinancialStatements"
+
+  polygon_io:
+    priority: 20
+    api_key: "YOUR_POLYGON_API_KEY" # 您的 Polygon.io API 金鑰
+    requests_per_minute: 5 # Polygon.io 免費方案限制 5 次 API 調用/分鐘
+    base_url: "https://api.polygon.io"
+
+  fmp: # Financial Modeling Prep
+    priority: 25
+    api_key: "YOUR_FMP_API_KEY" # 您的 FMP API 金鑰
+    requests_per_minute: 200 # FMP 免費方案每日限制 250 次，這裡估算一個較寬鬆的分鐘限制
+    base_url: "https://financialmodelingprep.com/api"
+
+  alpha_vantage:
+    priority: 30
+    api_key: "YOUR_ALPHA_VANTAGE_API_KEY" # 您的 Alpha Vantage API 金鑰
+    requests_per_minute: 5 # Alpha Vantage 免費方案限制 25 次/天 或 5 次/分鐘
+    base_url: "https://www.alphavantage.co"
+
+  finnhub:
+    priority: 35
+    api_key: "YOUR_FINNHUB_API_KEY" # 您的 Finnhub API 金鑰
+    requests_per_minute: 60 # Finnhub 免費方案速率限制約為 60 次/分鐘
+    base_url: "https://finnhub.io/api/v1"
+
+  nyfed:
+    priority: 40
+    # NYFed 通常是直接下載 Excel/CSV，可能不需要傳統 API 金鑰
+    # 但可以定義其基礎 URL 或特定檔案路徑
+    # 例如，AMBS 操作的 Excel 檔案基本 URL
+    ambs_operations_url: "https://www.newyorkfed.org/markets/desk-operations/ambs/-/media/Images/markets/omo/ambs/{YYYYMMDD}_ambs.xlsx"
+    # agency_mbs_purchase_summary_url: "https://www.newyorkfed.org/markets/ambs_data_archive.html" # 歷史數據頁面
+    requests_per_minute: 30 # 假設的下載速率限制，避免過於頻繁訪問
+
+  finlab:
+    priority: 45
+    api_key: "YOUR_FINLAB_API_TOKEN" # 您的 FinLab API Token
+    # FinLab 免費版有每日流量限制 (e.g., 500MB) 和可能的請求次數限制
+    # 具體速率依其實際情況調整
+    requests_per_minute: 100 # 假設值，需根據實際測試調整
+    # base_url: "https://api.finlab.tw" # FinLab API 通常透過其 SDK 使用
+
+# 資料庫設定 (範例，如果 DataMaster 或主控腳本需要寫入數據)
+# database:
+#   type: "duckdb" # 或 "sqlite"
+#   path: "data/financial_data.duckdb" # 相對路徑或絕對路徑
+
+# 全域日誌設定
+logging:
+  level: "INFO" # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file_path: "logs/data_pipeline.log" # 日誌檔案路徑，如果為 null 則輸出到控制台
+  max_bytes: 10485760 # 10MB
+  backup_count: 3

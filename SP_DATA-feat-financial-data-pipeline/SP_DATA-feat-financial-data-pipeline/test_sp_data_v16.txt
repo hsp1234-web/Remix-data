@@ -1,0 +1,154 @@
+**模擬測試分析總結報告 (`sp_data_v16` 套件)**
+
+**總體情況：**
+經過最近幾輪的測試強化，`sp_data_v16` 套件下的核心模組（特別是 `ingestion/pipeline.py` 和 `transformation/pipeline.py` 及其直接依賴）的測試覆蓋率和健壯性得到了顯著提升。許多先前未覆蓋的錯誤處理路徑和邏輯分支現在都有了相應的單元測試。
+
+然而，通過逐個模組的詳細審查，仍然可以識別出一些潛在的測試缺口、可以改進的測試實踐，以及程式碼中可能需要微調的錯誤處理策略。
+
+**各模組分析亮點與主要建議回顧：**
+
+---
+**1. 檔案：`src/sp_data_v16/core/config.py`**
+---
+*   **函式：`load_config(config_path: str = "config_v16.yaml") -> dict`**
+    *   **已測試的異常情況：** `FileNotFoundError`，`yaml.YAMLError`。
+    *   **潛在的測試缺口或改進點：**
+        1.  **成功路徑測試的獨立性 (`test_load_config_success`)：**
+            *   **問題：** 依賴專案根目錄下的實際 `config_v16.yaml`。
+            *   **建議：** 修改測試以使用 fixture 動態創建臨時設定檔。
+        2.  **檔案開啟時的 I/O 錯誤 (例如 `PermissionError`)：**
+            *   **問題：** `open()` 時的 `PermissionError` 或其他 `OSError` 未被 `load_config` 捕獲。
+            *   **建議：** 增加測試，mock `open()` 拋出 `PermissionError`，並根據期望行為（向上拋出或捕獲轉化）進行斷言。
+        3.  **設定檔編碼問題 (進階考慮)：**
+            *   **問題：** 硬編碼 `utf-8`，若設定檔為其他編碼可能失敗。
+            *   **建議 (可選)：** 測試使用非 `utf-8` 編碼的設定檔時的行為。
+    *   **總體：** 核心功能已測試，主要改進在於測試的獨立性和對檔案系統錯誤的覆蓋。
+
+---
+**2. 檔案：`src/sp_data_v16/ingestion/manifest.py` (`ManifestManager` 類別)**
+---
+*   **`__init__` 方法:**
+    *   **潛在問題:** `duckdb.connect()` 若失敗會直接拋出。
+    *   **建議測試場景:** Mock `duckdb.connect` 拋出 `duckdb.IOException`，驗證初始化失敗。
+*   **`_initialize_schema` 方法:**
+    *   **潛在問題:** `CREATE TABLE` 或 `COMMIT` 時的資料庫錯誤。
+    *   **建議測試場景:** Mock `self.con.execute` 或 `self.con.commit` 拋錯，觀察 `__init__` 行為。
+*   **`hash_exists` 方法:**
+    *   **潛在問題:** 資料庫查詢失敗。
+    *   **建議測試場景:** Mock `self.con.execute().fetchone()` 拋錯，驗證例外向上拋出。
+*   **`register_file` 方法:**
+    *   **已覆蓋:** `ConstraintException`。
+    *   **潛在問題:** 其他 `duckdb.Error`。
+    *   **建議測試場景:** Mock `self.con.execute` 或 `self.con.commit` 拋出非 `ConstraintException` 的 `duckdb.Error`，驗證其被重拋。
+*   **`update_status` 方法:**
+    *   **主要問題:** 捕獲通用 `Exception`，僅打印錯誤，不重拋或返回狀態。
+    *   **建議 (程式碼修改):** 修改為重拋例外或返回布林狀態。
+    *   **建議測試場景:** Mock DB 操作拋錯，(基於現狀)用 `capsys` 驗證打印；(修改後)驗證例外或返回狀態。
+*   **`get_file_status` 方法:**
+    *   **潛在問題:** 資料庫查詢失敗。
+    *   **建議測試場景:** Mock `self.con.execute().fetchone()` 拋錯，驗證例外向上拋出。
+*   **`close` 方法:**
+    *   **潛在問題:** `self.con.close()` 拋錯。
+    *   **建議測試場景:** Mock `self.con.close()` 拋錯，根據期望行為斷言。
+*   **測試檔案 (`test_manifest.py`) 建議：**
+    *   修正 `test_initialize_schema` 中 `expected_columns` 的欄位名 (`ingestion_timestamp` -> `registration_timestamp`)。
+    *   修正 `test_update_file_status` 的斷言以匹配 `update_status` 的實際返回值 (目前是 `None`)。
+*   **總體：** 核心功能有基本測試。主要缺口在於資料庫操作失敗的錯誤處理及其測試。`update_status` 的錯誤處理策略需重點關注。
+
+---
+**3. 檔案：`src/sp_data_v16/ingestion/scanner.py` (`FileScanner` 類別)**
+---
+*   **方法：`scan_directory(directory_path: str)`**
+    *   **路徑有效性檢查 (已良好測試)。**
+    *   **成功掃描路徑 (已良好測試)。**
+    *   **錯誤處理 - 處理單個檔案時的例外：**
+        1.  **`except IOError as e:`**
+            *   **功能描述：** 捕獲 I/O 操作失敗，打印警告，跳過檔案。
+            *   **潛在測試缺口：** 無明確測試此分支。
+            *   **建議測試場景：** Mock `open()` 在處理特定檔案時拋出 `IOError`。驗證 `capsys` 捕獲警告，該檔案被跳過，其他檔案正常處理。
+        2.  **`except Exception as e:`**
+            *   **功能描述：** 捕獲其他未預期錯誤，打印警告，跳過檔案。
+            *   **潛在測試缺口：** 無明確測試此分支。
+            *   **建議測試場景：** Mock 雜湊計算過程中的非 I/O 操作拋出通用 `Exception`。驗證警告、跳過和繼續。
+*   **總體：** 核心掃描和雜湊功能測試良好。主要增強點是為處理單個檔案時的 `IOError` 和其他 `Exception` 的錯誤處理分支創建專門測試。
+
+---
+**4. 檔案：`src/sp_data_v16/ingestion/raw_loader.py` (`RawLakeLoader` 類別)**
+---
+*   **現狀：此模組目前沒有專門的測試檔案。**
+*   **`__init__` 方法：**
+    *   **錯誤處理：** 捕獲通用 `Exception`，打印後重拋。
+    *   **建議測試案例：** 成功初始化；`duckdb.connect` 失敗 (mock 拋出 `IOException`)；`_initialize_schema` 失敗 (mock `execute` 拋錯)。
+*   **`_initialize_schema` 方法：**
+    *   **錯誤處理：** 無，錯誤由 `__init__` 捕獲。
+*   **`save_file` 方法：**
+    *   **錯誤處理：** 無明確 `try-except`。
+    *   **建議測試案例：** 成功保存；`read_bytes()` 失敗 (`FileNotFoundError`/`PermissionError`)；主鍵衝突 (`ConstraintException`)；其他DB寫入/提交錯誤。
+*   **`close` 方法：**
+    *   **錯誤處理：** 無明確 `try-except`。
+    *   **建議測試案例：** 成功關閉；`self.con.close()` 拋錯；`self.con` 未初始化時調用。
+*   **總體：** 迫切需要為此模組創建測試檔案並實現上述測試，以確保其在各種檔案和資料庫操作下的穩健性。
+
+---
+**5. 檔案：`src/sp_data_v16/transformation/schema_manager.py` (`SchemaManager` 類別)**
+---
+*   **`__init__` 方法：**
+    *   **錯誤處理 (已測試)：** `FileNotFoundError`, `json.JSONDecodeError` (打印警告，`self.schemas` 為空)。
+    *   **潛在測試缺口：** `open()` 時的 `PermissionError` 等其他 `IOError` (目前會直接向上拋出)。
+    *   **建議測試場景：** Mock `open()` 拋出 `PermissionError`，根據期望行為斷言。
+*   **`identify_schema_from_content` 方法：**
+    *   **解碼與匹配邏輯 (已良好測試)。**
+    *   **潛在測試缺口/改進點：**
+        *   關鍵字大小寫不敏感的進一步驗證 (輕微增強)。
+        *   多個 Schema 關鍵字匹配時的行為/優先級 (如果業務需要)。
+*   **`get_schema_definition` 方法 (不存在)：** 按需實現和測試。
+*   **總體：** 核心功能測試覆蓋較好。主要增強點是 `__init__` 中對更廣泛 `IOError` 的處理。
+
+---
+**6. 檔案：`src/sp_data_v16/transformation/parser.py` (`DataParser` 類別)**
+---
+*   **現狀：測試覆蓋非常全面。**
+*   **主要建議：**
+    *   **`csv_skip_rows` 邊界測試：** 增加對 `schema` 中 `csv_skip_rows` 功能的邊界條件測試 (例如，跳過行數等於/大於總行數，或為0/未定義)。
+*   **總體：** 模組測試狀況非常健康，僅需少量補充。
+
+---
+**7. 檔案：`src/sp_data_v16/transformation/validator.py` (`DataValidator` 類別)**
+---
+*   **現狀：核心類型轉換和空值檢查邏輯有良好覆蓋。`_validate_enum` 方法本身也已測試。**
+*   **主要建議 (偏重功能增強後的測試)：**
+    *   **整合 `_validate_enum`：** 若決定將 `_validate_enum` 整合到 `validate` 主流程，需為此編寫新的整合測試 (不同枚舉值情況、schema無 `valid_values` 等)。
+    *   **擴展 `target_dtype`：** 若支持更多類型 (如 'string', 'boolean')，需添加相應實現和測試。
+    *   **空 Schema `columns` 定義：** 可添加一個簡單邊界測試，驗證傳入空 schema 時的行為。
+*   **總體：** 測試基礎堅實，後續步驟更多是功能擴展及其伴隨的測試。
+
+---
+**8. 檔案：`src/sp_data_v16/transformation/processed_loader.py` (`ProcessedDBLoader` 類別)**
+---
+*   **現狀：此模組目前沒有專門的測試檔案。核心 Upsert 邏輯和動態表管理較為複雜。**
+*   **`__init__` 方法：**
+    *   **錯誤處理：** 捕獲 `OSError` 和 `duckdb.Error`，打印後重拋。
+    *   **建議測試案例：** 成功初始化；目錄創建失敗；資料庫連接失敗。
+*   **`load_dataframe` 方法 (核心測試區域)：**
+    *   **前置檢查：** `self.con` 為 `None`；空 DataFrame。
+    *   **Append 模式：** 成功附加；`to_sql` 失敗。
+    *   **Upsert 模式：**
+        *   表不存在時成功創建（含主鍵，需 `db_type`）。
+        *   成功更新；成功插入新記錄；混合更新與插入。
+        *   `ALTER TABLE ADD PRIMARY KEY` 失敗時的行為（目前僅打印警告）。
+        *   Upsert SQL 執行失敗。
+        *   `schema_definition` 缺少 `unique_key` (應退化為 append)。
+        *   `schema_definition` 缺少 `db_type` (測試 `CREATE TABLE AS SELECT` 備用邏輯)。
+        *   **注意：** `if not df_columns.tolist():` 分支可能無法觸發。
+*   **`close` 方法：**
+    *   **錯誤處理：** 捕獲 `duckdb.Error`，打印但不重拋。
+    *   **建議測試案例：** 成功關閉；`self.con.close()` 拋錯 (驗證打印且不崩潰)；`self.con` 為 `None` 時調用。
+*   **總體：** 迫切需要為此模組創建測試檔案並實現詳盡測試，特別是針對複雜的 Upsert 邏輯和動態表創建部分。
+
+**一般性觀察與建議總結：**
+
+*   **錯誤處理策略一致性：** 不同模組/方法對於相似錯誤的處理方式（打印、重拋、返回狀態）可考慮進一步統一。
+*   **日誌記錄：** 考慮將 `print` 替換為標準的 `logging` 框架。
+*   **`__main__` 區塊：** 通常不計入單元測試覆蓋範圍，現狀可接受。
+
+此報告旨在全面識別潛在的測試不足之處，以便後續能更有針對性地提升專案品質。

@@ -1,0 +1,7 @@
+# 核心套件
+pandas
+duckdb
+pyyaml
+python-dotenv
+requests
+requests-cache

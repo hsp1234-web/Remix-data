@@ -1,0 +1,26 @@
+# config.yaml
+# ----------------------------------------------------
+# 專案總設定檔
+
+# API 金鑰 (請勿提交到 Git)
+api_keys:
+  fred: "YOUR_FRED_API_KEY"
+
+# 數據庫設定
+database:
+  type: "sqlite"  # 可切換為 "duckdb", "postgresql"
+  path: "data/market_data.db"
+
+# 數據獲取設定
+fetchers:
+  active: "fred" # 可切換為 "yfinance"
+
+# 檔案路徑
+paths:
+  log_file: "logs/system.log"
+  cache_dir: "data/cache/"
+
+# 模型參數
+risk_model:
+  pca_components: 5
+  ema_smoothing_span: 20

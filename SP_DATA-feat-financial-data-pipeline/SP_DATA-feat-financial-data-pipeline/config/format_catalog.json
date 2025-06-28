@@ -1,0 +1,160 @@
+{
+  "1d8b3a6210259585087055983169707694a202fcbe389789b689883138276991": {
+    "description": "每日選擇權行情 (E2E 測試 - OptionsDaily_2023_11_08.csv)",
+    "target_table": "daily_ohlc",
+    "parser_config": {
+      "sep": ",",
+      "header": 0,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_daily_ohlc",
+    "required_columns": [
+      "交易日期",
+      "契約",
+      "買賣權",
+      "收盤價"
+    ]
+  },
+  "08f7077bb12993a5f9615870804837f8e906c70913817690884460f0497e2b27": {
+    "description": "三大法人 (依商品分) (E2E 測試 - BFI82U_20231108.csv)",
+    "target_table": "institutional_investors",
+    "parser_config": {
+      "sep": ",",
+      "header": 0,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_institutional_investors",
+    "required_columns": [
+      "日期",
+      "商品名稱",
+      "身份別"
+    ]
+  },
+  "fingerprint_hash_daily_ohlc_v1": {
+    "description": "每日行情 (期貨/選擇權) - v1, 無漲跌幅欄位",
+    "target_table": "daily_ohlc",
+    "parser_config": {
+      "sep": ",",
+      "header": 0,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_daily_ohlc",
+    "required_columns": [
+      "交易日期",
+      "契約",
+      "收盤價",
+      "成交量"
+    ]
+  },
+  "fingerprint_hash_tick_data_fwf": {
+    "description": "逐筆成交 (固定寬度格式)",
+    "target_table": "tick_data",
+    "parser_config": {
+      "parser_type": "fwf",
+      "skiprows": 2,
+      "header": null,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_tick_data_fwf",
+    "required_columns": [
+      "成交日期",
+      "商品代號",
+      "成交時間",
+      "成交價格"
+    ]
+  },
+  "fingerprint_hash_tick_data_csv": {
+    "description": "逐筆成交 (逗號分隔格式)",
+    "target_table": "tick_data",
+    "parser_config": {
+      "sep": ",",
+      "header": 0,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_tick_data_csv",
+    "required_columns": [
+      "成交日期",
+      "商品代號",
+      "成交時間",
+      "成交價格"
+    ]
+  },
+  "fingerprint_hash_inst_inv_by_type": {
+    "description": "三大法人 (依期貨/選擇權分)",
+    "target_table": "institutional_investors",
+    "parser_config": {
+      "sep": ",",
+      "header": 0,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_institutional_investors",
+    "required_columns": [
+      "日期",
+      "身份別",
+      "期貨多方交易口數",
+      "選擇權多方交易口數"
+    ]
+  },
+  "fingerprint_hash_inst_inv_by_callput": {
+    "description": "三大法人 (依買賣權分)",
+    "target_table": "institutional_investors",
+    "parser_config": {
+      "sep": ",",
+      "header": 0,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_institutional_investors",
+    "required_columns": [
+      "日期",
+      "商品名稱",
+      "買賣權別",
+      "身份別"
+    ]
+  },
+  "fingerprint_hash_pcr": {
+    "description": "買賣權比率 (PCR)",
+    "target_table": "pcr",
+    "parser_config": {
+      "sep": ",",
+      "header": 0,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_pcr",
+    "required_columns": [
+      "日期",
+      "買賣權成交量比率%",
+      "買賣權未平倉量比率%"
+    ]
+  },
+  "fingerprint_hash_greeks_delta": {
+    "description": "選擇權風險指標 (Delta)",
+    "target_table": "option_greeks",
+    "parser_config": {
+      "sep": ",",
+      "header": 1,
+      "encoding": "ms950"
+    },
+    "cleaner_function": "clean_greeks_delta",
+    "required_columns": [
+      "商品",
+      "買賣權",
+      "履約價格",
+      "Delta值"
+    ]
+  },
+  "fingerprint_hash_broker_volume": {
+    "description": "期貨商交易量 (日/週)",
+    "target_table": "broker_volume",
+    "parser_config": {
+      "sep": ",",
+      "header": 0,
+      "encoding": "utf-8-sig"
+    },
+    "cleaner_function": "clean_broker_volume",
+    "required_columns": [
+      "期貨商代號",
+      "商品",
+      "交易量"
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+2025-06-25 15:55:31,448 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Global log file initialized at api_test_logs/2025-06-25T235531+0000_system_build_log.txt (Taipei Time in filename).
+2025-06-25 15:55:31,448 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - System build process started.
+2025-06-25 15:55:31,448 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - This is a test info message.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [WARNING] - This is a test warning message.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Cleaned API Key from fred_api_test.py. Replaced FRED_API_KEY with placeholder.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Cleaned API Key from alpha_vantage_api_test.py. Replaced ALPHA_VANTAGE_API_KEY with placeholder.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Cleaned API Key from finnhub_api_test.py. Replaced FINNHUB_API_KEY with placeholder.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Cleaned API Key from polygon_api_test.py. Replaced POLYGON_API_KEY with placeholder.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Cleaned API Key from fmp_api_test.py. Replaced FMP_API_KEY with placeholder.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Cleaned API Key from finlab_api_test.py. Replaced FINLAB_API_KEY with placeholder.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Cleaned API Token from finmind_real_api_test.py. Replaced FINMIND_API_TOKEN with placeholder.
+2025-06-25 15:55:31,449 (Taipei: 2025-06-25 23:55:31 UTC+0000) [INFO] - Log file is at: api_test_logs/2025-06-25T235531+0000_system_build_log.txt

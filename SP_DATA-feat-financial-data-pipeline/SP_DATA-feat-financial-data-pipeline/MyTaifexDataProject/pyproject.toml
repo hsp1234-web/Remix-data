@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "taifex-pipeline"
+version = "3.0.1"
+description = "全自動本地智慧期交所數據管道 (Taifex Intelligent Data Pipeline)"
+authors = ["Your Name <you@example.com>"] # 請用戶稍後替換為自己的資訊
+readme = "README.md"
+packages = [{include = "taifex_pipeline", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13" # 支援 Python 3.9 到 3.12
+pandas = "^2.2.0" # Pandas 最新穩定版系列
+duckdb = ">=0.9.0" # DuckDB 較新版本，以獲得良好效能與 Arrow 支援
+pyarrow = "^15.0.0" # Arrow 支援，通常與 DuckDB 和 Pandas 配合使用
+pytz = "^2023.3" # 處理時區，例如台北時區
+
+[tool.poetry.group.dev.dependencies]
+black = ">=23.0.0,<25.0.0" # Black 最新穩定版系列
+ruff = ">=0.1.0,<0.5.0"   # Ruff 最新穩定版系列
+mypy = "^1.8.0"         # MyPy 最新穩定版系列
+pytest = "^7.4.0"       # Pytest 最新穩定版系列
+pre-commit = "^3.5.0"   # Pre-commit 最新穩定版系列
+# rich = "^13.7.0" # (可選) 用於美化控制台輸出，若決定使用則取消註解
+
+# MyPy 設定 (通常建議放在 pyproject.toml 或 setup.cfg)
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true # 某些C擴展或第三方庫可能沒有類型存根
+# show_error_codes = true # 顯示錯誤代碼，方便查找文檔
+# exclude = ["notebooks/"] # 通常排除 notebooks 目錄
+
+# Ruff 設定
+[tool.ruff]
+line-length = 88 # 與 Black 預設一致
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # Pyflakes
+    "I",  # isort
+    "C",  # flake8-comprehensions
+    "B",  # flake8-bugbear
+]
+ignore = ["E501"] # Line too long (交給 Black 處理)
+
+[tool.ruff.lint.isort] # Ruff 內建 isort 功能
+known_first_party = ["taifex_pipeline"]
+
+# Black 設定 (雖然 Black 聲稱 "uncompromising", 但有時還是需要微調)
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311', 'py312']
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

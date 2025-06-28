@@ -1,0 +1,36 @@
+2025-06-26 00:03:48,735 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] GlobalLogSetup - initialize_global_log.initialize_log_file:134 - Global logger initialized. Log file: /app/api_test_logs/2025-06-26T000348Z_application_log.txt
+2025-06-26 00:03:48,735 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] MainApp.Setup - initialize_global_log.log_message:190 - main.py: Global application logger (from initialize_global_log) explicitly initialized. Log file: /app/api_test_logs/2025-06-26T000348Z_application_log.txt
+2025-06-26 00:03:48,735 (Taipei: 2025-06-26 08:03:48 UTC+0000) [WARNING] MainApp.InitCheck - initialize_global_log.log_message:190 - Global application log file path from module was not set. Bootstrap logger might be active for app logs.
+2025-06-26 00:03:48,736 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] MainApp.Setup - initialize_global_log.log_message:190 - Detailed execution transcript for this run will ALSO be saved to: /app/market_briefing_log.txt
+2025-06-26 00:03:48,736 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - --- 開始執行端到端金融數據處理原型 (Atomic Script Version) ---
+2025-06-26 00:03:48,736 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] MainApp.ConfigLoader - initialize_global_log.log_message:190 - Loading project configuration from: /app/src/configs/project_config.yaml
+2025-06-26 00:03:48,743 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] MainApp.ConfigLoader - initialize_global_log.log_message:190 - Project configuration loaded successfully from /app/src/configs/project_config.yaml.
+2025-06-26 00:03:48,744 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 - Data fetch range: Start='2020-01-01', End='2025-06-26'.
+2025-06-26 00:03:48,744 (Taipei: 2025-06-26 08:03:48 UTC+0000) [DEBUG] MainApp.main_flow - initialize_global_log.log_message:190 - Temporarily set environment variable 'FRED_API_KEY' for FRED API access.
+2025-06-26 00:03:48,744 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.__init__:34 - DatabaseManager initialized. DB file target: /app/data/financial_data.duckdb
+2025-06-26 00:03:48,798 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.connect:45 - Successfully connected to DuckDB database: /app/data/financial_data.duckdb
+2025-06-26 00:03:48,799 (Taipei: 2025-06-26 08:03:48 UTC+0000) [CRITICAL] project_logger.DatabaseManager - database_manager.connect:48 - Failed to connect to DuckDB database at /app/data/financial_data.duckdb: 'duckdb.duckdb.DuckDBPyConnection' object has no attribute 'isclosed'
+Traceback (most recent call last):
+  File "/app/src/database/database_manager.py", line 46, in connect
+    self._create_tables_if_not_exist() # Create tables upon connection
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/database/database_manager.py", line 64, in _create_tables_if_not_exist
+    if not self.conn or self.conn.isclosed():
+                        ^^^^^^^^^^^^^^^^^^
+AttributeError: 'duckdb.duckdb.DuckDBPyConnection' object has no attribute 'isclosed'
+2025-06-26 00:03:48,802 (Taipei: 2025-06-26 08:03:48 UTC+0000) [CRITICAL] MainApp.main_flow - initialize_global_log.log_message:190 - 主流程 main() 發生嚴重執行期錯誤: 'duckdb.duckdb.DuckDBPyConnection' object has no attribute 'isclosed'
+Traceback (most recent call last):
+  File "/app/src/main.py", line 194, in main
+    db_manager.connect() # This will also create tables if they don't exist
+    ^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/database/database_manager.py", line 46, in connect
+    self._create_tables_if_not_exist() # Create tables upon connection
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/src/database/database_manager.py", line 64, in _create_tables_if_not_exist
+    if not self.conn or self.conn.isclosed():
+                        ^^^^^^^^^^^^^^^^^^
+AttributeError: 'duckdb.duckdb.DuckDBPyConnection' object has no attribute 'isclosed'
+2025-06-26 00:03:48,808 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] project_logger.DatabaseManager - database_manager.disconnect:58 - Database connection already closed or not established.
+2025-06-26 00:03:48,808 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] MainApp.main_flow - initialize_global_log.log_message:190 -
+--- 端到端原型執行完畢 (Atomic Script Version) ---
+2025-06-26 00:03:48,808 (Taipei: 2025-06-26 08:03:48 UTC+0000) [INFO] MainApp.Cleanup - initialize_global_log.log_message:190 - Removing detailed run log handler. Transcript saved to /app/market_briefing_log.txt

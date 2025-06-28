@@ -1,0 +1,8 @@
+# Data and numerics
+pandas
+yfinance
+duckdb
+scipy
+
+# Testing
+pytest

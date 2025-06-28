@@ -1,0 +1,11 @@
+database:
+  manifest_db_path: "data/v16/manifest.db"
+  raw_lake_db_path: "data/v16/raw_lake.db"
+  processed_db_path: "data/v16/processed_data.db"
+
+logging:
+  level: "INFO"
+  format: "[%(asctime)s] [%(levelname)s] - %(message)s"
+
+paths:
+  input_directory: "TEST_DATA/01_input_files"

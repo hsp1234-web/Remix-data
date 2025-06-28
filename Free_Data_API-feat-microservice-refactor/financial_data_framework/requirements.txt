@@ -1,0 +1,6 @@
+# 核心依賴
+yfinance
+duckdb
+PyYAML
+requests
+pandas
