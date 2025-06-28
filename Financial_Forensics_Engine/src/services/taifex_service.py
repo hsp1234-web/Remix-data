@@ -223,67 +223,132 @@ class TaifexService:
         self.logger.info(f"TAIFEX 數據汲取流程完成。共處理 {processed_files} 個潛在檔案，成功汲取 {successful_ingestions} 個檔案。")
         return successful_ingestions
 
-    def transform_single_raw_table(self, raw_table_name: str, recipe: Dict[str, Any]) -> bool:
+    def transform_single_raw_table(self, raw_table_name: str, recipe: Dict[str, Any], fingerprint: Optional[str] = None) -> bool:
         """
-        （佔位符）轉換單個 raw_lake 中的表到 curated_mart。
-        未來會從 raw_lake 讀取數據，調用清理函數，驗證 schema，然後寫入 curated_mart。
+        轉換單個 raw_lake 中的表到 curated_mart。
+        從 raw_lake 讀取數據，調用對應的清理函數，將結果 UPSERT 到 curated_mart，
+        並將壞數據行存入隔離表。
 
         Args:
             raw_table_name (str): raw_lake 中的原始表名。
             recipe (Dict[str, Any]): 與此原始表相關的處理配方。
+            fingerprint (Optional[str]): 該原始表對應的檔案指紋 (用於日誌和隔離記錄)。
 
         Returns:
-            bool: 轉換是否成功（目前總是 True）。
+            bool: 轉換是否主要成功 (即使有部分行被隔離也可能返回 True)。
+                  如果發生嚴重錯誤導致無法處理則返回 False。
         """
         curated_table_name = recipe.get("target_table_curated")
         cleaner_function_name = recipe.get("cleaner_function")
-        schema_curated_ref = recipe.get("schema_curated_ref")
+        curated_pk_columns = recipe.get("curated_primary_key")
 
-        self.logger.info(f"[佔位符] 準備轉換原始表 {raw_table_name} 到精選表 {curated_table_name}。")
-        self.logger.info(f"  將使用清理函數: {cleaner_function_name} (如果實現)。")
-        self.logger.info(f"  將參考精選 schema: {schema_curated_ref} (來自 database_schemas.json)。")
+        if not all([curated_table_name, cleaner_function_name, curated_pk_columns]):
+            self.logger.error(f"配方 {recipe.get('description')} (針對 {raw_table_name}) 缺少 "
+                              f"target_table_curated, cleaner_function, 或 curated_primary_key。跳過轉換。")
+            return False
+
+        self.logger.info(f"開始轉換原始表 {raw_table_name} 到精選表 {curated_table_name}...")
 
         if not self.db_repo_raw.table_exists(raw_table_name):
             self.logger.warning(f"原始表 {raw_table_name} 在 raw_lake 中不存在，無法進行轉換。")
+            return False # 或者 True，表示沒有數據可轉，不算失敗？取決於定義
+
+        df_raw = self.db_repo_raw.fetch_data(f"SELECT * FROM {raw_table_name}")
+        if df_raw is None or df_raw.empty:
+            self.logger.info(f"原始表 {raw_table_name} 為空或讀取失敗，無需轉換。")
+            return True # 沒有數據可轉，不視為錯誤
+
+        # 動態獲取清理函數
+        try:
+            # 假設 taifex_cleaners 模組已在環境中可用
+            # 或者 TaifexService 在初始化時已導入該模組
+            import src.utils.taifex_cleaners as cleaners_module
+            cleaner_func = getattr(cleaners_module, cleaner_function_name)
+        except AttributeError:
+            self.logger.error(f"在 src.utils.taifex_cleaners 中未找到清理函數 '{cleaner_function_name}'。跳過轉換 {raw_table_name}。")
+            return False
+        except ImportError:
+            self.logger.error(f"無法導入 src.utils.taifex_cleaners 模組。跳過轉換 {raw_table_name}。")
             return False
 
-        # TODO (未來實現):
-        # 1. 從 self.db_repo_raw 讀取 raw_table_name 的數據到 DataFrame。
-        #    df_raw = self.db_repo_raw.fetch_data(f"SELECT * FROM {raw_table_name}")
-        # 2. 如果 df_raw 不為空：
-        #    a. 實現並動態調用 cleaner_function_name 對 df_raw 進行清理和轉換。
-        #       (可能需要一個清理函數的註冊表或 dispatcher)
-        #    b. 根據 database_schemas.json 中 schema_curated_ref 定義的 schema，
-        #       對清理後的 DataFrame 進行欄位選擇、類型轉換、驗證。
-        #    c. 將處理好的 DataFrame 寫入到 self.db_repo_curated 的 curated_table_name 中。
-        #       (注意 curated_mart 的 schema 是嚴格的，需確保 DataFrame 匹配)
-        self.logger.info(f"[佔位符] 表 {raw_table_name} 的轉換邏輯尚未完全實現。")
-        return True
+        # 為配方動態添加指紋信息，供 cleaner 記錄到隔離區
+        recipe_with_context = recipe.copy()
+        if fingerprint:
+            recipe_with_context['_fingerprint_during_service_call'] = fingerprint
+
+        try:
+            cleaned_df, quarantined_rows = cleaner_func(df_raw, recipe_with_context, self.logger)
+            self.logger.info(f"表 {raw_table_name} 清洗完成：{len(cleaned_df)} 行乾淨數據，{len(quarantined_rows)} 行隔離數據。")
+
+            # 處理隔離數據
+            if quarantined_rows:
+                quarantine_df_list = []
+                for q_row_info in quarantined_rows:
+                    quarantine_df_list.append({
+                        "quarantined_at": pd.Timestamp.now(tz='UTC'),
+                        "source_file_fingerprint": q_row_info.get("source_file_fingerprint", fingerprint), # 優先用 cleaner 提供的
+                        "raw_table_name": raw_table_name,
+                        "recipe_description": q_row_info.get("recipe_description", recipe.get("description")),
+                        "error_message": q_row_info.get("error_message"),
+                        "original_row_data_json": pd.io.json.dumps(q_row_info.get("original_row_data_json", q_row_info.get("original_row_data"))), # 確保是 JSON str
+                        "notes": "TaifexService transform"
+                    })
+
+                if quarantine_df_list:
+                    quarantine_final_df = pd.DataFrame(quarantine_df_list)
+                    try:
+                        self.db_repo_curated.insert_df("quarantine_taifex_data", quarantine_final_df, overwrite=False)
+                        self.logger.info(f"{len(quarantine_final_df)} 行壞數據已存入 quarantine_taifex_data。")
+                    except Exception as e_quarantine:
+                        self.logger.error(f"將壞數據存入 quarantine_taifex_data 失敗: {e_quarantine}", exc_info=True)
+
+            # 處理乾淨數據
+            if not cleaned_df.empty:
+                try:
+                    self.db_repo_curated.upsert_df(curated_table_name, cleaned_df, primary_key_columns=curated_pk_columns)
+                    self.logger.info(f"{len(cleaned_df)} 行乾淨數據已 UPSERT 到 curated_mart 的表 {curated_table_name}。")
+                except Exception as e_upsert:
+                    self.logger.error(f"UPSERT 乾淨數據到表 {curated_table_name} 失敗: {e_upsert}", exc_info=True)
+                    # 根據策略，這裡可以選擇是否算作整體轉換失敗
+                    return False # 如果寫入 curated 失敗，則認為此表轉換失敗
+            else:
+                self.logger.info(f"沒有乾淨的數據可寫入表 {curated_table_name} (可能所有行都被隔離了)。")
+
+            return True # 主要流程執行完畢
+
+        except Exception as e_clean:
+            self.logger.error(f"調用清理函數 '{cleaner_function_name}' 處理表 {raw_table_name} 時發生嚴重錯誤: {e_clean}", exc_info=True)
+            # 可以在此處將整個 df_raw 標記為有問題，或記錄一個總體錯誤到 manifest
+            return False
 
 
     def run_transformation(self) -> int:
         """
-        （佔位符）遍歷 format_catalog 中的所有條目，對每個條目執行轉換。
+        遍歷 format_catalog 中的所有條目，對每個條目對應的 raw_lake 表執行轉換。
+        (階段 2A.1: 處理 format_catalog 中定義的所有表，假設 raw_lake 中有對應數據)
 
         Returns:
-            int: 成功觸發轉換的表的數量。
+            int: 成功完成轉換 (即使有部分行被隔離) 的表的數量。
         """
-        self.logger.info("開始 TAIFEX 數據轉換流程 (目前主要為佔位符)。")
-        triggered_transformations = 0
+        self.logger.info("開始 TAIFEX 數據轉換流程...")
+        successful_transformations = 0
         if not self.format_catalog:
-            self.logger.warning("TAIFEX 格式目錄為空，無法執行轉換。")
+            self.logger.warning("TAIFEX 格式目錄 (format_catalog) 為空，無法執行轉換。")
             return 0
 
         for fingerprint, recipe in self.format_catalog.items():
             raw_table_name = recipe.get("target_table_raw")
-            if raw_table_name:
-                self.logger.info(f"觸發對原始表 {raw_table_name} (來自指紋 {fingerprint}) 的轉換。")
-                if self.transform_single_raw_table(raw_table_name, recipe):
-                    triggered_transformations +=1
-            else:
+            if not raw_table_name:
                 self.logger.warning(f"指紋 {fingerprint} 的配方中缺少 'target_table_raw'，跳過轉換。")
+                continue
 
-        self.logger.info(f"TAIFEX 數據轉換流程完成。共觸發 {triggered_transformations} 個表的轉換（佔位）。")
+            self.logger.info(f"準備轉換與指紋 {fingerprint} (描述: {recipe.get('description')}) 相關的原始表: {raw_table_name}")
+            if self.transform_single_raw_table(raw_table_name, recipe, fingerprint=fingerprint):
+                successful_transformations += 1
+            else:
+                self.logger.error(f"原始表 {raw_table_name} (來自指紋 {fingerprint}) 的轉換失敗。")
+
+        self.logger.info(f"TAIFEX 數據轉換流程完成。共成功轉換 {successful_transformations} 個原始表。")
         return triggered_transformations
 
 

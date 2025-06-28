@@ -75,4 +75,23 @@
   }
   // 後續可以根據 feature_service 的需求添加特徵表，例如：
   // "fact_technical_features", "fact_orderflow_features", "fact_sentiment_scores" 等。
+  "quarantine_taifex_data": {
+    "description": "TAIFEX 數據轉換過程中隔離的壞數據行",
+    "columns": [
+      {"name": "quarantine_id", "type": "BIGINT", "nullable": false, "is_identity": true, "description": "唯一的隔離記錄ID (自增)"},
+      {"name": "quarantined_at", "type": "TIMESTAMP_TZ", "nullable": false, "description": "數據被隔離的時間戳"},
+      {"name": "source_file_fingerprint", "type": "VARCHAR", "description": "來源檔案的指紋 (如果可用)"},
+      {"name": "raw_table_name", "type": "VARCHAR", "description": "來源原始表名 (在 raw_lake 中)"},
+      {"name": "recipe_description", "type": "VARCHAR", "description": "處理此數據時使用的配方描述"},
+      {"name": "error_message", "type": "VARCHAR", "nullable": false, "description": "導致隔離的錯誤信息"},
+      {"name": "original_row_data_json", "type": "JSON", "description": "原始數據行的 JSON 表示"},
+      {"name": "notes", "type": "VARCHAR", "description": "額外備註"}
+    ],
+    "primary_key": ["quarantine_id"],
+    "indexes": [
+      {"name": "idx_qtd_timestamp", "columns": ["quarantined_at"]},
+      {"name": "idx_qtd_fingerprint", "columns": ["source_file_fingerprint"]},
+      {"name": "idx_qtd_raw_table", "columns": ["raw_table_name"]}
+    ]
+  }
 }

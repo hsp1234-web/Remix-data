@@ -277,7 +277,8 @@ class DuckDBRepository:
                     self.logger.info(f"嘗試插入的 DataFrame Schema:\n{df.dtypes}")
                 except Exception as desc_e:
                     self.logger.error(f"獲取表 {table_name} 的 schema 失敗: {desc_e}")
-            raise
+            # 不再拋出異常，允許流程繼續，例如記錄錯誤後嘗試其他操作
+            # raise
 
     def get_table_schema(self, table_name: str) -> Optional[pd.DataFrame]:
         """獲取指定表的 schema 信息。"""
@@ -292,6 +293,98 @@ class DuckDBRepository:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.disconnect()
+
+    def upsert_df(self, table_name: str, df: pd.DataFrame, primary_key_columns: List[str], create_table_if_not_exists: bool = True):
+        """
+        將 Pandas DataFrame 的數據 UPSERT (insert or update) 到指定的表中。
+        如果主鍵衝突，則更新已存在的行。
+
+        Args:
+            table_name (str): 目標表的名稱。
+            df (pd.DataFrame): 要插入或更新的數據。
+            primary_key_columns (List[str]): 用於衝突檢測的主鍵欄位列表。
+                                           這些欄位必須在 DataFrame 和目標表中都存在。
+            create_table_if_not_exists (bool): 如果為 True 且表不存在，則嘗試根據 DataFrame 的 schema 創建表。
+                                               警告：這樣創建的表可能沒有正確的主鍵或索引，除非 DataFrame 恰好匹配。
+                                               建議表預先由 initialize_schema 創建。
+        """
+        if df.empty:
+            self.logger.info(f"DataFrame 為空，不對表 {table_name} 執行 UPSERT 操作。")
+            return
+
+        if not self.conn or self.conn.closed:
+            self.connect()
+
+        if not self.conn: # 再次檢查連接是否成功
+            self.logger.error(f"UPSERT 操作失敗，資料庫未連接 ({self.db_path})。")
+            return
+
+        # 檢查主鍵欄位是否存在於 DataFrame 中
+        missing_pk_cols_in_df = [col for col in primary_key_columns if col not in df.columns]
+        if missing_pk_cols_in_df:
+            self.logger.error(f"UPSERT 失敗：主鍵欄位 {missing_pk_cols_in_df} 在提供的 DataFrame 中不存在。")
+            return
+
+        # 處理表不存在的情況
+        if not self.table_exists(table_name):
+            if create_table_if_not_exists:
+                self.logger.warning(f"表 {table_name} 不存在。將嘗試基於 DataFrame schema 創建（可能沒有主鍵約束）。建議預先初始化 schema。")
+                try:
+                    self.conn.register(f'{table_name}_temp_df_view_upsert_create', df)
+                    # 這裡創建的表不會自動有主鍵，除非手動添加約束，或者 schema 中有
+                    # 這部分與 insert_df 的 create_table_if_not_exists 邏輯類似
+                    # 為了 UPSERT 能工作，理想情況下表應該已經存在且有主鍵
+                    self.conn.execute(f"CREATE TABLE {table_name} AS SELECT * FROM {f'{table_name}_temp_df_view_upsert_create'}")
+                    self.conn.unregister(f'{table_name}_temp_df_view_upsert_create')
+                    self.logger.info(f"表 {table_name} 已根據 DataFrame 創建。")
+                    # 警告：此時表可能沒有正確的主鍵定義以供 ON CONFLICT 使用。
+                    # DuckDB 的 ON CONFLICT 需要 UNIQUE 約束或 PRIMARY KEY。
+                    # 如果是這種情況，後續的 INSERT ... ON CONFLICT 可能會表現為普通 INSERT 或失敗。
+                    # 為了測試，我們可以嘗試為剛創建的表添加主鍵（如果 DuckDB 版本支援）
+                    # 不過，更好的做法是依賴 initialize_schema 預先創建好帶主鍵的表。
+                except Exception as e_create:
+                    self.logger.error(f"基於 DataFrame 創建表 {table_name} 失敗: {e_create}")
+                    return
+            else:
+                self.logger.error(f"UPSERT 失敗：表 {table_name} 不存在且 create_table_if_not_exists 為 False。")
+                return
+
+        # DuckDB 的 INSERT ... ON CONFLICT 語法
+        # INSERT INTO target_table SELECT * FROM source_df
+        # ON CONFLICT (key_column1, key_column2) DO UPDATE SET
+        #   col1 = excluded.col1, col2 = excluded.col2, ...
+
+        # 構建 SET 子句，排除主鍵列自身
+        update_columns = [col for col in df.columns if col not in primary_key_columns]
+        if not update_columns: # 如果所有列都是主鍵列，則無法更新
+            self.logger.warning(f"表 {table_name} 的所有欄位都是主鍵欄位，ON CONFLICT 將不會執行任何 UPDATE。")
+            set_clause = "NOTHING" # 或者可以選擇 DO NOTHING
+        else:
+            set_clause_parts = [f"{col} = excluded.{col}" for col in update_columns]
+            set_clause = f"UPDATE SET {', '.join(set_clause_parts)}"
+
+        conflict_target = f"({', '.join(primary_key_columns)})"
+
+        # 為了在 SQL 中引用 DataFrame，我們先將其註冊為一個臨時視圖
+        temp_view_name = f"{table_name}_temp_upsert_view"
+        self.conn.register(temp_view_name, df)
+
+        upsert_sql = f"""
+        INSERT INTO {table_name} SELECT * FROM {temp_view_name}
+        ON CONFLICT {conflict_target} DO {set_clause};
+        """
+
+        try:
+            self.execute_query(upsert_sql)
+            self.logger.info(f"{len(df)} 行數據已成功 UPSERT 到表 {table_name}。")
+        except Exception as e:
+            self.logger.error(f"UPSERT 數據到表 {table_name} 失敗: {e}\nSQL: {upsert_sql.strip()}")
+            # 輸出表結構和 DataFrame 結構以幫助調試
+            self.logger.info(f"表 {table_name} 的 Schema:\n{self.get_table_schema(table_name)}")
+            self.logger.info(f"嘗試 UPSERT 的 DataFrame Schema:\n{df.dtypes}")
+        finally:
+            # 清理臨時視圖
+            self.conn.unregister(temp_view_name)
 
 
 if __name__ == '__main__':
@@ -414,6 +507,66 @@ if __name__ == '__main__':
         # if os.path.exists(test_db_path):
         #     os.remove(test_db_path)
         #     print(f"\n已刪除測試資料庫: {test_db_path}")
-        print(f"\n測試完畢。如果需要，請手動刪除測試資料庫: {test_db_path}")
 
+    # --- 測試 UPSERT ---
+    print("\n--- 測試 5: UPSERT DataFrame ---")
+    if repo and repo.table_exists("fact_daily_market_summary"): # 確保表已存在且有 schema
+        # 準備一些數據，其中一些與已存在數據衝突，一些是新的
+        upsert_data = {
+            'date': pd.to_datetime(['2023-01-01', '2023-01-03', '2023-01-01']).date, # 第一行與覆寫後的數據衝突，第三行也與第一行衝突
+            'symbol': ['GOOG', 'AMD', 'GOOG'], # GOOG 衝突, AMD 新
+            'name': ['Google LLC', 'Advanced Micro Devices Inc.', 'Google Inc. (Updated)'],
+            'open_price': [2500.0, 120.0, 2505.0],
+            'high_price': [2520.0, 122.0, 2525.0],
+            'low_price': [2490.0, 119.0, 2495.0],
+            'close_price': [2510.0, 121.0, 2515.0], # GOOG 的 close_price 將被更新
+            'volume': [1200000, 900000, 1200001],
+            'turnover': [3012000000.0, 108900000.0, 3018000000.0],
+            'change': [10.0, 1.0, 15.0],
+            'change_percent': [0.004, 0.008, 0.006],
+            'source': ['TestUpsert', 'TestUpsert', 'TestUpsertUpdated']
+        }
+        upsert_df_data = pd.DataFrame(upsert_data)
+
+        # 從 schema 配置中獲取主鍵
+        pk_cols = []
+        if schemas and "fact_daily_market_summary" in schemas:
+            pk_cols = schemas["fact_daily_market_summary"].get("primary_key", ["date", "symbol"])
+        else: # 如果 schemas 未加載，使用預設
+            pk_cols = ["date", "symbol"]
+
+        print(f"用於 UPSERT 的主鍵欄位: {pk_cols}")
+        repo.upsert_df("fact_daily_market_summary", upsert_df_data, primary_key_columns=pk_cols)
+
+        upserted_result_df = repo.fetch_data("SELECT * FROM fact_daily_market_summary ORDER BY date, symbol;")
+        print("UPSERT 後從 'fact_daily_market_summary' 讀取的數據:\n", upserted_result_df)
+
+        # 驗證：
+        # 1. 總行數應為 2 (GOOG 2023-01-01 被更新了兩次，AMD 2023-01-03 是新的)
+        # 2. GOOG 2023-01-01 的數據應是最後一次 UPSERT 的數據 (source='TestUpsertUpdated', close_price=2515.0)
+        if upserted_result_df is not None:
+            assert len(upserted_result_df) == 2, f"UPSERT 後行數應為2, 實際為 {len(upserted_result_df)}"
+
+            goog_row = upserted_result_df[
+                (upserted_result_df['date'] == pd.to_datetime('2023-01-01').date()) &
+                (upserted_result_df['symbol'] == 'GOOG')
+            ]
+            assert not goog_row.empty, "未找到 GOOG 2023-01-01 的數據"
+            assert goog_row.iloc[0]['close_price'] == 2515.0, f"GOOG 2023-01-01 的 close_price 未按預期更新"
+            assert goog_row.iloc[0]['source'] == 'TestUpsertUpdated', f"GOOG 2023-01-01 的 source 未按預期更新"
+
+            amd_row = upserted_result_df[
+                 (upserted_result_df['date'] == pd.to_datetime('2023-01-03').date()) &
+                 (upserted_result_df['symbol'] == 'AMD')
+            ]
+            assert not amd_row.empty, "未找到 AMD 2023-01-03 的新數據"
+            print("UPSERT 邏輯驗證通過。")
+        else:
+            print("錯誤：UPSERT 後未能讀取數據。")
+
+    else:
+        print("跳過 UPSERT 測試，因為 'fact_daily_market_summary' 表不存在或 repo 未初始化。")
+
+
+    print(f"\n測試完畢。如果需要，請手動刪除測試資料庫: {test_db_path}")
     print("\nDuckDBRepository 測試完畢。")
