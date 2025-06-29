@@ -14,58 +14,58 @@
 ## 專案結構總覽
 
 Financial_Forensics_Engine/
-├── runner.py                     # 主執行器，事件驅動任務調度核心
-├── requirements.txt              # Python 依賴包列表
-├── taifex_format_catalog.json    # 台指期數據格式轉換設定檔
-├── database_schemas.json         # 資料庫表結構定義檔
-|
-├── apps/                         # 微應用程式目錄
-│   ├── 00_ingest_social_posts/   # 汲取社交媒體貼文
-│   │   └── run.py
-│   ├── 01_ingest_taifex/         # 汲取台指期數據
-│   │   └── run.py
-│   ├── 02_transform_taifex/      # 轉換台指期數據 (Bronze -> Silver)
-│   │   └── run.py
-│   ├── 03_aggregate_to_gold/     # 聚合台指期數據 (Silver -> Gold)
-│   │   └── run.py
-│   ├── 10_create_weekly_context/ # 生成目標週分析包
-│   │   └── run.py
-│   ├── 11_analyze_weekly_context/  # AI 分析每週情境，生成報告
-│   │   └── run.py
-│   └── 20_generate_synthesis_report/ # AI 生成跨週期綜合報告
-│       └── run.py
-|
-├── config/                       # (建議新增) 存放專案設定檔
-│   └── project_config.yaml       # (建議新增) 專案級設定，如 API 金鑰名稱映射
-|
-├── utils/                        # (建議新增) 通用工具模組
-│   └── config_loader.py          # (建議新增) 統一的設定加載器
-|
-├── data/                         # 數據存儲目錄 (分層)
-│   ├── input/                    # 原始輸入數據
-│   │   ├── social_posts/social_posts.csv
-│   │   └── taifex/unzipped/taifex_data.csv
-│   ├── bronze/                   # 初步轉換後的數據 (Parquet)
-│   │   ├── social_posts/threads_posts.parquet
-│   │   └── taifex/taifex_data.parquet
-│   ├── silver/                   # 清洗和結構化後的數據
-│   │   └── analysis_packages/    # App 10 生成的 JSON 分析包
-│   │       └── 2022-W30_AnalysisPackage.json (示例)
-│   ├── gold/                     # 高度聚合和分析後的數據
-│   │   └── analysis_reports/     # App 11 生成的 AI 分析報告
-│   │       └── 2022-W30_AnalysisReport.txt (示例)
-│   ├── reports/                  # App 20 生成的綜合報告
-│   └── financial_data.duckdb     # DuckDB 資料庫檔案
-|
-├── event_bus/                    # 事件/任務檔案傳遞目錄
-│   ├── queue/                    # 新任務佇列
-│   ├── in_progress/              # 處理中任務
-│   ├── completed/                # 已完成任務
-│   └── failed/                   # 失敗任務
-|
-└── logs/                         # 日誌檔案目錄
-    ├── runner_YYYYMMDD_HHMMSS.log
-    └── app_XX_script_name.log    # 各微應用的日誌
+  runner.py                     # 主執行器，事件驅動任務調度核心
+  requirements.txt              # Python 依賴包列表
+  taifex_format_catalog.json    # 台指期數據格式轉換設定檔
+  database_schemas.json         # 資料庫表結構定義檔
+
+  apps/                         # 微應用程式目錄
+    00_ingest_social_posts/   # 汲取社交媒體貼文
+      run.py
+    01_ingest_taifex/         # 汲取台指期數據
+      run.py
+    02_transform_taifex/      # 轉換台指期數據 (Bronze -> Silver)
+      run.py
+    03_aggregate_to_gold/     # 聚合台指期數據 (Silver -> Gold)
+      run.py
+    10_create_weekly_context/ # 生成目標週分析包
+      run.py
+    11_analyze_weekly_context/  # AI 分析每週情境，生成報告
+      run.py
+    20_generate_synthesis_report/ # AI 生成跨週期綜合報告
+      run.py
+
+  config/                       # (建議新增) 存放專案設定檔
+    project_config.yaml       # (建議新增) 專案級設定，如 API 金鑰名稱映射
+
+  utils/                        # (建議新增) 通用工具模組
+    config_loader.py          # (建議新增) 統一的設定加載器
+
+  data/                         # 數據存儲目錄 (分層)
+    input/                    # 原始輸入數據
+      social_posts/social_posts.csv
+      taifex/unzipped/taifex_data.csv
+    bronze/                   # 初步轉換後的數據 (Parquet)
+      social_posts/threads_posts.parquet
+      taifex/taifex_data.parquet
+    silver/                   # 清洗和結構化後的數據
+      analysis_packages/    # App 10 生成的 JSON 分析包
+        2022-W30_AnalysisPackage.json (示例)
+    gold/                     # 高度聚合和分析後的數據
+      analysis_reports/     # App 11 生成的 AI 分析報告
+        2022-W30_AnalysisReport.txt (示例)
+    reports/                  # App 20 生成的綜合報告
+    financial_data.duckdb     # DuckDB 資料庫檔案
+
+  event_bus/                    # 事件/任務檔案傳遞目錄
+    queue/                    # 新任務佇列
+    in_progress/              # 處理中任務
+    completed/                # 已完成任務
+    failed/                   # 失敗任務
+
+  logs/                         # 日誌檔案目錄
+    runner_YYYYMMDD_HHMMSS.log
+    app_XX_script_name.log    # 各微應用的日誌
 
 ## 主要功能模組說明
 
