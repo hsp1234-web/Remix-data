@@ -89,17 +89,20 @@ def load_all_configs(config_dir):
                     print(f"成功從環境變數加載 API 金鑰：{key_alias} (對應變數 {env_var_name})")
 
             if key_value:
-                loaded_api_keys[key_alias] = key_value
-                # 同時也將其設置為環境變數，方便後續直接使用 os.getenv()
+                # 將加載到的金鑰值直接存儲在配置的 api_keys 映射中
+                configs['project_config']['api_keys'][key_alias] = key_value
+                print(f"成功將 API 金鑰 '{key_alias}' 的值存入配置。")
+                # 同時也將其設置為環境變數，方便後續直接使用 os.getenv() 或向下兼容
                 os.environ[env_var_name] = key_value
             else:
-                print(f"警告：未能加載 API 金鑰 '{key_alias}' (環境變數名: {env_var_name})。請確保已在 Colab Secrets 或 .env/.bashrc 中設定。")
+                # 如果未能加載到金鑰，將配置中的對應值設為 None，並打印警告
+                configs['project_config']['api_keys'][key_alias] = None
+                print(f"警告：未能加載 API 金鑰 '{key_alias}' (環境變數名: {env_var_name})。其在配置中的值將是 None。請確保已在 Colab Secrets 或 .env/.bashrc 中設定。")
 
-        # 可以選擇將加載到的金鑰存儲在配置中，或者讓使用方直接 os.getenv()
-        # 這裡我們選擇不直接將金鑰值本身存入 configs 字典中以增強安全性，
-        # 使用者應通過 os.getenv(project_config['api_keys']['some_key_alias']) 來獲取
-        # 但為了方便，我們可以添加一個已加載的標記或列表
-        configs['project_config']['loaded_api_key_aliases'] = list(loaded_api_keys.keys())
+        # 由於金鑰值已直接存入 api_keys 映射中，不再需要 loaded_api_key_aliases
+        # 如果需要檢查哪些金鑰已加載，可以遍歷 api_keys 映射並檢查值是否為 None
+        if 'loaded_api_key_aliases' in configs['project_config']:
+            del configs['project_config']['loaded_api_key_aliases']
 
     return configs
 
@@ -165,16 +168,22 @@ if __name__ == '__main__':
                 print(str(content)[:200])
 
         # 檢查 API 金鑰加載情況
-        if 'project_config' in all_loaded_configs and 'loaded_api_key_aliases' in all_loaded_configs['project_config']:
-            print("\n已成功加載的 API 金鑰別名:")
-            for alias in all_loaded_configs['project_config']['loaded_api_key_aliases']:
-                print(f"  - {alias}")
-
-            # 嘗試獲取已加載的金鑰值
-            test_key_1_env_name = all_loaded_configs.get('project_config', {}).get('api_keys', {}).get('test_key_1')
-            if test_key_1_env_name:
-                retrieved_key_value = os.getenv(test_key_1_env_name)
-                print(f"通過 os.getenv('{test_key_1_env_name}') 獲取的值: {retrieved_key_value}")
+        if 'project_config' in all_loaded_configs and 'api_keys' in all_loaded_configs['project_config']:
+            print("\nAPI 金鑰加載狀態 (直接從配置中讀取):")
+            for key_alias, key_value in all_loaded_configs['project_config']['api_keys'].items():
+                if key_value:
+                    # 為了安全，不直接打印金鑰值，只顯示是否已加載
+                    print(f"  - {key_alias}: 已加載 (值已存入配置)")
+                    # 驗證是否也設定到環境變數 (根據我們模擬的 test_key_1)
+                    if key_alias == "test_key_1":
+                         # 測試時，project_config.yaml 中的 test_key_1 對應的環境變數名是 MY_TEST_API_KEY_1
+                         # 我們需要從原始的 api_key_map (即修改前的 project_config.yaml 結構) 或模擬的環境變數名來驗證
+                         # 在這個測試例子中，我們模擬了 MY_TEST_API_KEY_1
+                         env_var_for_test_key_1 = "MY_TEST_API_KEY_1" # 這是我們在測試中 os.environ 設定的
+                         retrieved_from_env = os.getenv(env_var_for_test_key_1)
+                         print(f"    └─ 對應環境變數 '{env_var_for_test_key_1}' 的值: {retrieved_from_env}")
+                else:
+                    print(f"  - {key_alias}: 未加載 (配置中的值為 None)")
 
 
         # 清理臨時創建的檔案 (如果適用)

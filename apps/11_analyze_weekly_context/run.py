@@ -3,6 +3,8 @@ import json
 import argparse
 import logging
 from datetime import datetime
+import sys # 用於路徑調整
+
 # Import the Gemini library
 try:
     import google.generativeai as genai
@@ -13,12 +15,29 @@ except ImportError:
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# --- 專案配置和路徑 ---
+# 假設此腳本 (run.py) 位於 apps/11_analyze_weekly_context/
+# 專案根目錄是向上兩級
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+FFE_CONFIG_DIR = os.path.join(PROJECT_ROOT, "Financial_Forensics_Engine", "config")
+
+# 將 Financial_Forensics_Engine 的 src 目錄添加到 sys.path 以便導入 config_loader
+FFE_SRC_DIR = os.path.join(PROJECT_ROOT, "Financial_Forensics_Engine", "src")
+if FFE_SRC_DIR not in sys.path:
+    sys.path.insert(0, FFE_SRC_DIR)
+
+try:
+    from utils.config_loader import load_all_configs
+except ImportError as e:
+    logging.error(f"無法從 {FFE_SRC_DIR}/utils/config_loader.py 導入 load_all_configs: {e}")
+    logging.error("請確保 Financial_Forensics_Engine 專案結構正確，且此腳本相對於專案根目錄的路徑正確。")
+    # 在無法導入配置加載器的情況下，可以選擇退出或使用備用方案
+    load_all_configs = None # 標記為 None，後續檢查
+
 # --- Default Configuration ---
-DEFAULT_REPORTS_DIR = "data/gold/analysis_reports"
-# It's better to get API key from environment variables or a secure config
-# For Colab, use Colab Secrets to set GEMINI_API_KEY
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-DEFAULT_GEMINI_MODEL = "gemini-1.5-flash-latest" # Or "gemini-1.5-pro-latest"
+DEFAULT_REPORTS_DIR = "data/gold/analysis_reports" # 腳本自身的預設值，可被 project_config覆蓋
+# GEMINI_API_KEY 將從 project_config 中讀取
+DEFAULT_GEMINI_MODEL = "gemini-1.5-flash-latest" # Or "gemini-1.5-pro-latest", 可被 project_config覆蓋
 
 PROMPT_TEMPLATE = """\
 您是一位頂尖的金融市場分析師。您的任務是針對一個【特定目標週】進行深度分析，同時參考其【前後一個月的市場背景】來提供更宏觀的視角。
@@ -190,10 +209,20 @@ def main():
 
     logging.info(f"Starting AI analysis for package: {args.package_path}")
 
-    if not GEMINI_API_KEY:
-        logging.error("GEMINI_API_KEY environment variable not set. Cannot proceed with AI analysis.")
-        # Potentially write a placeholder error report or simply exit
-        # For now, let's exit if key is missing.
+    # 加載全局配置
+    project_configs = None
+    if load_all_configs:
+        project_configs = load_all_configs(FFE_CONFIG_DIR)
+
+    if not project_configs or 'project_config' not in project_configs:
+        logging.error(f"無法加載主專案配置從 {FFE_CONFIG_DIR}。請檢查路徑和 config_loader。")
+        return
+
+    gemini_api_key = project_configs.get('project_config', {}).get('api_keys', {}).get('google')
+
+    if not gemini_api_key:
+        logging.error("未能從專案配置中獲取 Gemini API 金鑰 (鍵名: 'google')。")
+        logging.error("請確保 Financial_Forensics_Engine/config/project_config.yaml 已正確配置，並且 Colab Secrets 或環境變數已設定對應的 'GOOGLE_API_KEY'。")
         return
 
     try:
@@ -223,7 +252,7 @@ def main():
     #    pf.write(final_prompt)
     # logging.info("Saved generated prompt for debugging.")
 
-    ai_report_content = call_gemini_api(final_prompt, GEMINI_API_KEY, args.gemini_model)
+    ai_report_content = call_gemini_api(final_prompt, gemini_api_key, args.gemini_model)
 
     # Save the report
     os.makedirs(args.reports_dir, exist_ok=True)
@@ -242,12 +271,24 @@ def main():
 
 if __name__ == "__main__":
     # Example: python apps/11_analyze_weekly_context/run.py --package-path data/silver/analysis_packages/2023-W40_AnalysisPackage.json
-    # Ensure GEMINI_API_KEY is set in your environment or Colab Secrets
+    # 檢查 Gemini library 是否安裝
     if not genai:
         print("google.generativeai library is not installed. This script requires it.")
         print("Please run: pip install google-generativeai")
-    elif not GEMINI_API_KEY:
-        print("GEMINI_API_KEY environment variable is not set.")
-        print("Please set it before running the script, e.g., in Colab Secrets or your shell environment.")
+    # 檢查 config_loader 是否成功導入
+    elif not load_all_configs:
+        print("Error: config_loader could not be imported. Cannot proceed.")
+        print(f"Please check that FFE_SRC_DIR ({FFE_SRC_DIR}) is correct and Financial_Forensics_Engine is structured as expected.")
     else:
-        main()
+        # 在直接運行腳本時，可以添加一個快速檢查來確認配置是否能加載及金鑰是否存在
+        # 這有助於開發者快速定位問題，但主要邏輯已在 main() 中處理
+        _project_configs_test = load_all_configs(FFE_CONFIG_DIR)
+        if not _project_configs_test or 'project_config' not in _project_configs_test:
+            print(f"Error: Could not load project configuration from {FFE_CONFIG_DIR} for pre-flight check.")
+        elif not _project_configs_test.get('project_config', {}).get('api_keys', {}).get('google'):
+            print("Error: Gemini API key (alias 'google') not found in project_config during pre-flight check.")
+            print("Ensure 'google' is mapped to 'GOOGLE_API_KEY' in project_config.yaml and the secret is set.")
+        else:
+            print("Pre-flight check: Config loader imported and Gemini API key alias 'google' seems to be configured.")
+            print("Attempting to run main analysis...")
+            main()

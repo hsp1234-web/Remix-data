@@ -18,11 +18,14 @@ logging:
 # 這裡的值是 API 金鑰在 Colab Secrets 或環境變數中的「名稱」
 # config_loader.py 將嘗試根據這些名稱加載實際的金鑰值
 api_keys:
-  finmind_token: "FINMIND_API_TOKEN"  # FinMind API 的金鑰名稱
-  fred_api_key: "FRED_API_KEY"        # FRED API 的金鑰名稱
-  # 可以根據需要添加更多 API 金鑰，例如：
-  # alpha_vantage_key: "ALPHA_VANTAGE_API_KEY"
-  # eodhistoricaldata_key: "EODHD_API_KEY"
+  google: "GOOGLE_API_KEY"
+  finmind: "API_KEY_FINMIND"
+  finnhub: "API_KEY_FINNHUB"
+  fmp: "API_KEY_FMP"
+  fred: "API_KEY_FRED" # FRED API 的金鑰名稱，已根據指示更新
+  polygon: "API_KEY_POLYGON"
+  alpha_vantage: "ALPHA_VANTAGE_API_KEY"
+  deepseek: "DEEPSEEK_API_KEY"
 
 # 數據庫相關配置
 database:
