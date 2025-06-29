@@ -1,0 +1,22 @@
+{
+  "silver_fact_taifex_quotes": {
+    "columns": [
+      {"name": "trade_date", "type": "DATE", "nullable": false},
+      {"name": "contract", "type": "VARCHAR", "nullable": false},
+      {"name": "expiry_month_week", "type": "VARCHAR", "nullable": true},
+      {"name": "open", "type": "DOUBLE", "nullable": true},
+      {"name": "close", "type": "DOUBLE", "nullable": true},
+      {"name": "volume", "type": "BIGINT", "nullable": true}
+    ],
+    "primary_keys": ["trade_date", "contract", "expiry_month_week"]
+  },
+  "gold_weekly_market_summary": {
+    "columns": [
+      {"name": "week_start_date", "type": "DATE", "nullable": false},
+      {"name": "week_id", "type": "VARCHAR", "nullable": false},
+      {"name": "contract_group", "type": "VARCHAR", "nullable": false},
+      {"name": "weekly_close", "type": "DOUBLE", "nullable": true}
+    ],
+    "primary_keys": ["week_id", "contract_group"]
+  }
+}

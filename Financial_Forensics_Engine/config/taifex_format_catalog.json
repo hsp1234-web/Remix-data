@@ -1,0 +1,145 @@
+{
+  "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2": {
+    "description": "每日選擇權行情 (日盤) - 範例指紋 (此指紋為示意，需由實際檔案生成)",
+    "source_type": "options_daily_quotes",
+    "target_table_raw": "raw_taifex_options_daily_quotes", # TaifexService.ingest_single_file 使用的 raw 表名
+    "target_table_curated": "fact_options_daily_quotes",   # TaifexService.transform_single_raw_table 使用的 curated 表名
+    "curated_primary_key": ["trade_date", "contract_symbol", "expiry_period", "strike_price", "option_type"], # 用於 UPSERT 到 curated_mart
+    "parser_config": {
+      "skiprows": 1,
+      "encoding": "utf-8", # 我們創建的 sample_daily_options_20231220.csv 是 UTF-8
+      "thousands": ",",
+      "header_rows_for_fingerprint": 5,
+      "expected_columns_count": 19 # 我們的範例 CSV 有19個欄位
+    },
+    "column_mapping_raw": { # 原始 CSV 欄位名 -> DataFrame 中間欄位名 (汲取階段用)
+      "交易日期": "trade_date_raw",
+      "契約": "contract_symbol_raw",
+      "到期月份(週別)": "expiry_period_raw",
+      "履約價": "strike_price_raw",
+      "買賣權": "option_type_raw",
+      "開盤價": "open_price_raw",
+      "最高價": "high_price_raw",
+      "最低價": "low_price_raw",
+      "收盤價": "close_price_raw",
+      "成交量": "volume_raw",
+      "結算價": "settlement_price_raw",
+      "未沖銷契約量": "open_interest_raw",
+      "最後最佳買價": "best_bid_price_raw",
+      "最後最佳賣價": "best_ask_price_raw",
+      "歷史最高價": "historical_high_price_raw",
+      "歷史最低價": "historical_low_price_raw",
+      "是否因訊息面暫停交易": "trading_halted_raw",
+      "價外%": "otm_percentage_raw",
+      "隱含波動率": "implied_volatility_raw"
+    },
+    "required_columns_raw": ["交易日期", "契約", "到期月份(週別)", "履約價", "買賣權", "收盤價", "成交量", "結算價", "未沖銷契約量"],
+    "cleaner_function": "clean_options_daily_data", # 指向 src/utils/taifex_cleaners.py 中的函數
+    "column_mapping_curated": { # DataFrame 中間欄位名 -> curated_mart 表中的標準欄位名 (轉換階段用)
+        "trade_date_raw": "trade_date",
+        "contract_symbol_raw": "contract_symbol",
+        "expiry_period_raw": "expiry_period",
+        "strike_price_raw": "strike_price",
+        "option_type_raw": "option_type",
+        "open_price_raw": "open_price",
+        "high_price_raw": "high_price",
+        "low_price_raw": "low_price",
+        "close_price_raw": "close_price",
+        "volume_raw": "volume",
+        "settlement_price_raw": "settlement_price",
+        "open_interest_raw": "open_interest",
+        "best_bid_price_raw": "best_bid_price",
+        "best_ask_price_raw": "best_ask_price",
+        "implied_volatility_raw": "implied_volatility"
+        // historical_high_price_raw, historical_low_price_raw, trading_halted_raw, otm_percentage_raw 等原始欄位，如果不需要進入 curated_mart，則不在此映射
+    },
+    "data_type_defaults": { # 清洗轉換時，若欄位值處理失敗或為空，則使用的預設值 (key 是 curated 標準欄位名)
+        "open_price": null,
+        "high_price": null,
+        "low_price": null,
+        "close_price": null,
+        "volume": 0,
+        "settlement_price": null,
+        "open_interest": 0,
+        "best_bid_price": null,
+        "best_ask_price": null,
+        "implied_volatility": null
+    },
+    "schema_curated_ref": "fact_options_daily_quotes" # 指向 database_schemas.json 中的表定義，供 cleaner 參考類型
+  },
+  "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5": {
+    "description": "三大法人交易資訊 (期貨) - 範例指紋 (此指紋為示意)",
+    "source_type": "institutional_trades_futures",
+    "target_table_raw": "raw_taifex_institutional_futures_trades",
+    "target_table_curated": "fact_institutional_futures_trades",
+    "curated_primary_key": ["trade_date", "product_name", "investor_type"],
+    "parser_config": {
+      "skiprows": 1,
+      "header": 0,
+      "encoding": "big5", # 假設實際檔案是 BIG5
+      "thousands": ",",
+      "header_rows_for_fingerprint": 3
+    },
+    "column_mapping_raw": { # 原始 CSV -> DataFrame 中間名
+      "交易日期": "trade_date_raw",
+      "商品名稱": "product_name_raw",
+      "身份別": "investor_type_raw",
+      "多方交易口數": "long_contracts_raw",
+      "多方交易金額": "long_value_raw",
+      "空方交易口數": "short_contracts_raw",
+      "空方交易金額": "short_value_raw",
+      "多空交易口數淨額": "net_contracts_raw",
+      "多空交易金額淨額": "net_value_raw",
+      "多方未平倉口數": "long_oi_contracts_raw",
+      "多方未平倉金額": "long_oi_value_raw",
+      "空方未平倉口數": "short_oi_contracts_raw",
+      "空方未平倉金額": "short_oi_value_raw",
+      "多空未平倉口數淨額": "net_oi_contracts_raw",
+      "多空未平倉金額淨額": "net_oi_value_raw"
+    },
+    "required_columns_raw": ["交易日期", "商品名稱", "身份別", "多方交易口數", "空方交易口數", "多方未平倉口數", "空方未平倉口數"],
+    "cleaner_function": "clean_institutional_trades_data",
+    "column_mapping_curated": { # DataFrame 中間名 -> curated 標準名
+        "trade_date_raw": "trade_date",
+        "product_name_raw": "product_name",
+        "investor_type_raw": "investor_type",
+        "long_contracts_raw": "long_contracts",
+        "long_value_raw": "long_value",
+        "short_contracts_raw": "short_contracts",
+        "short_value_raw": "short_value",
+        "net_contracts_raw": "net_contracts",
+        "net_value_raw": "net_value",
+        "long_oi_contracts_raw": "long_open_interest_contracts",
+        "long_oi_value_raw": "long_open_interest_value",
+        "short_oi_contracts_raw": "short_open_interest_contracts",
+        "short_oi_value_raw": "short_open_interest_value",
+        "net_oi_contracts_raw": "net_open_interest_contracts",
+        "net_oi_value_raw": "net_open_interest_value"
+    },
+    "data_type_defaults": { # key 是 curated 標準欄位名
+        "long_contracts": 0, "long_value": 0,
+        "short_contracts": 0, "short_value": 0,
+        "net_contracts": 0, "net_value": 0,
+        "long_open_interest_contracts": 0, "long_open_interest_value": 0,
+        "short_open_interest_contracts": 0, "short_open_interest_value": 0,
+        "net_open_interest_contracts": 0, "net_open_interest_value": 0
+    },
+     "data_type_conversion_raw": { # 這部分主要在 ingest_single_file 階段參考，或 cleaner 也可參考
+      "多方交易口數": "int",
+      "多方交易金額": "int",
+      "空方交易口數": "int",
+      "空方交易金額": "int",
+      "多空交易口數淨額": "int",
+      "多空交易金額淨額": "int",
+      "多方未平倉口數": "int",
+      "多方未平倉金額": "int",
+      "空方未平倉口數": "int",
+      "空方未平倉金額": "int",
+      "多空未平倉口數淨額": "int",
+      "多空未平倉金額淨額": "int"
+    },
+    "date_columns_raw": ["交易日期"],
+    "cleaner_function": "clean_institutional_trades_data",
+    "schema_curated_ref": "fact_institutional_futures_trades"
+  }
+}

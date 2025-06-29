@@ -1,0 +1,16 @@
+pandas
+PyYAML
+python-dotenv
+requests
+requests-cache
+duckdb
+google-generativeai
+tenacity
+scikit-learn
+xgboost
+matplotlib
+seaborn
+plotly
+scipy
+pyarrow
+flake8

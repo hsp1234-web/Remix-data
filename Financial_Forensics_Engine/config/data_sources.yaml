@@ -1,0 +1,63 @@
+# 此檔案用於定義 ingestion_service 需要採集的各個外部 API 數據源的元數據。
+# ingestion_service 將讀取此配置，並動態調用 src/connectors/ 下對應的連接器。
+
+# 範例結構 (後續將根據實際 API 進行填充和調整)
+
+data_sources:
+  - name: "FinMind_TaiwanStockPrice"
+    description: "FinMind 台灣股價日交易資料"
+    enabled: true # 是否啟用此數據源的採集
+    connector_module: "finmind_connector" # 對應 src/connectors/finmind_connector.py
+    connector_class: "FinMindConnector"  # 連接器中的類名
+    # 此數據源的特定參數，會傳遞給連接器的 fetch 方法
+    parameters:
+      dataset: "TaiwanStockPrice" # FinMind API 的 dataset 參數
+      # start_date: "2020-01-01" # 可選，如果希望有預設的開始日期，否則可能由 Orchestrator 或 Notebook 參數提供
+      # data_id: ["2330", "0050"] # 可選，如果只對特定股票感興趣，否則可能是全市場
+    # 數據存儲到 raw_lake 的相關配置
+    raw_lake_storage:
+      target_table_or_prefix: "raw_finmind_taiwan_stock_price" # DuckDB 表名或 Parquet 檔案前綴
+      format: "parquet" # 或 "duckdb_table"
+      partition_by: ["date_year", "date_month"] # 可選，如果使用 Parquet 並希望分區
+
+  - name: "FinMind_TaiwanStockFinancialStatements"
+    description: "FinMind 台灣個股綜合損益表"
+    enabled: false # 暫時禁用
+    connector_module: "finmind_connector"
+    connector_class: "FinMindConnector"
+    parameters:
+      dataset: "TaiwanStockFinancialStatement"
+      # start_date: "2020-01-01"
+    raw_lake_storage:
+      target_table_or_prefix: "raw_finmind_financial_statement"
+      format: "parquet"
+
+  - name: "FRED_Series"
+    description: "FRED 經濟數據系列"
+    enabled: true
+    connector_module: "fred_connector" # 對應 src/connectors/fred_connector.py
+    connector_class: "FredConnector"
+    parameters:
+      series_ids: # 需要獲取的 FRED series ID 列表
+        - "GDP"
+        - "CPIAUCSL" # Consumer Price Index for All Urban Consumers
+        - "UNRATE"   # Unemployment Rate
+        - "DGS10"    # 10-Year Treasury Constant Maturity Rate
+        - "VIXCLS"   # CBOE Volatility Index
+    raw_lake_storage:
+      target_table_or_prefix: "raw_fred_series"
+      format: "duckdb_table" # 假設直接存入 DuckDB 表
+
+  - name: "Example_AnotherAPI"
+    description: "另一個範例 API 數據源"
+    enabled: false
+    connector_module: "another_api_connector"
+    connector_class: "AnotherApiConnector"
+    parameters:
+      endpoint: "some_data_point"
+      api_token_alias: "another_api_token" # 如果此 API 需要特定的金鑰，且金鑰名稱與 project_config.yaml 中不同
+    raw_lake_storage:
+      target_table_or_prefix: "raw_another_api_data"
+      format: "json_files" # 假設直接存儲原始 JSON 檔案
+      base_path: "another_api_data" # 在 raw_lake 下的子目錄
+# ... 可以繼續添加其他數據源定義

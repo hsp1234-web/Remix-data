@@ -1,0 +1,7 @@
+pandas
+pyarrow
+duckdb
+python-dotenv
+snownlp
+scikit-learn
+openpyxl

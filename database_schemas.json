@@ -1,0 +1,53 @@
+{
+  "silver_fact_taifex_quotes": {
+    "columns": [
+      {"name": "trade_date", "type": "DATE", "nullable": false},
+      {"name": "contract", "type": "VARCHAR", "nullable": false},
+      {"name": "expiry_month_week", "type": "VARCHAR", "nullable": true},
+      {"name": "strike_price", "type": "DOUBLE", "nullable": true},
+      {"name": "option_type", "type": "VARCHAR", "nullable": true},
+      {"name": "open", "type": "DOUBLE", "nullable": true},
+      {"name": "high", "type": "DOUBLE", "nullable": true},
+      {"name": "low", "type": "DOUBLE", "nullable": true},
+      {"name": "close", "type": "DOUBLE", "nullable": true},
+      {"name": "volume", "type": "BIGINT", "nullable": true},
+      {"name": "settlement_price", "type": "DOUBLE", "nullable": true},
+      {"name": "open_interest", "type": "BIGINT", "nullable": true},
+      {"name": "best_bid_price", "type": "DOUBLE", "nullable": true},
+      {"name": "best_ask_price", "type": "DOUBLE", "nullable": true},
+      {"name": "historical_high_price", "type": "DOUBLE", "nullable": true},
+      {"name": "historical_low_price", "type": "DOUBLE", "nullable": true},
+      {"name": "trading_halted", "type": "VARCHAR", "nullable": true},
+      {"name": "otm_oi", "type": "DOUBLE", "nullable": true},
+      {"name": "itm_oi", "type": "DOUBLE", "nullable": true},
+      {"name": "atm_oi", "type": "DOUBLE", "nullable": true},
+      {"name": "pc_ratio_percentage", "type": "DOUBLE", "nullable": true}
+    ],
+    "primary_keys": ["trade_date", "contract", "expiry_month_week", "strike_price", "option_type"],
+    "indexes": [
+      {"name": "idx_sftq_trade_date", "columns": ["trade_date"]},
+      {"name": "idx_sftq_contract", "columns": ["contract"]},
+      {"name": "idx_sftq_expiry", "columns": ["expiry_month_week"]}
+    ]
+  },
+  "gold_weekly_market_summary": {
+    "columns": [
+      {"name": "week_start_date", "type": "DATE", "nullable": false},
+      {"name": "week_end_date", "type": "DATE", "nullable": false},
+      {"name": "week_id", "type": "VARCHAR", "nullable": false},
+      {"name": "contract_group", "type": "VARCHAR", "nullable": false},
+      {"name": "weekly_open", "type": "DOUBLE", "nullable": true},
+      {"name": "weekly_high", "type": "DOUBLE", "nullable": true},
+      {"name": "weekly_low", "type": "DOUBLE", "nullable": true},
+      {"name": "weekly_close", "type": "DOUBLE", "nullable": true},
+      {"name": "total_weekly_volume", "type": "BIGINT", "nullable": true},
+      {"name": "avg_daily_volume", "type": "DOUBLE", "nullable": true},
+      {"name": "avg_pc_ratio", "type": "DOUBLE", "nullable": true},
+      {"name": "avg_open_interest", "type": "DOUBLE", "nullable": true}
+    ],
+    "primary_keys": ["week_id", "contract_group"],
+    "indexes": [
+      {"name": "idx_gwms_week_id", "columns": ["week_id"]}
+    ]
+  }
+}

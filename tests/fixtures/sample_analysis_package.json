@@ -1,0 +1,37 @@
+{
+  "target_week_id": "2023-W10",
+  "analysis_window": {
+    "start_date": "2023-02-06",
+    "end_date": "2023-04-09",
+    "week_ids_in_window": [
+      "2023-W06", "2023-W07", "2023-W08", "2023-W09",
+      "2023-W10",
+      "2023-W11", "2023-W12", "2023-W13", "2023-W14"
+    ]
+  },
+  "context_window_summary": {
+    "weekly_summaries": [
+      {
+        "week_id": "2023-W09",
+        "close_price": 16000,
+        "post_count": 5,
+        "sentiment_score": 0.75,
+        "top_keywords": ["上漲", "突破", "樂觀"]
+      }
+    ]
+  },
+  "target_week_detail": {
+    "daily_market_data": [
+      {"date": "2023-03-06", "close": 16050, "volume": 120000, "cite_id": "market_2023-03-06"},
+      {"date": "2023-03-07", "close": 16100, "volume": 125000, "cite_id": "market_2023-03-07"}
+    ],
+    "full_text_posts": [
+      {
+        "post_date": "2023-03-06 10:00:00",
+        "author": "TestUser1",
+        "content": "目標週看起來不錯，繼續持有。",
+        "cite_id": "post_tw_1"
+      }
+    ]
+  }
+}

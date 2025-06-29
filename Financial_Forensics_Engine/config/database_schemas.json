@@ -1,0 +1,97 @@
+{
+  "fact_daily_market_summary": {
+    "description": "每日市場總結 (例如: 加權指數、主要期貨合約的日 K)",
+    "columns": [
+      {"name": "date", "type": "DATE", "nullable": false, "description": "交易日期"},
+      {"name": "symbol", "type": "VARCHAR", "nullable": false, "description": "商品代碼 (例如: 'TX', 'IX0001', '2330')"},
+      {"name": "name", "type": "VARCHAR", "description": "商品名稱"},
+      {"name": "open_price", "type": "DOUBLE", "description": "開盤價"},
+      {"name": "high_price", "type": "DOUBLE", "description": "最高價"},
+      {"name": "low_price", "type": "DOUBLE", "description": "最低價"},
+      {"name": "close_price", "type": "DOUBLE", "description": "收盤價"},
+      {"name": "volume", "type": "BIGINT", "description": "成交量 (股數或口數)"},
+      {"name": "turnover", "type": "DOUBLE", "description": "成交金額"},
+      {"name": "change", "type": "DOUBLE", "description": "漲跌"},
+      {"name": "change_percent", "type": "DOUBLE", "description": "漲跌幅 (%)"},
+      {"name": "source", "type": "VARCHAR", "description": "數據來源 (例如: 'FinMind', 'TAIFEX', 'yfinance')"}
+    ],
+    "primary_key": ["date", "symbol"],
+    "indexes": [
+      {"name": "idx_fdms_date", "columns": ["date"]},
+      {"name": "idx_fdms_symbol", "columns": ["symbol"]},
+      {"name": "idx_fdms_source", "columns": ["source"]}
+    ]
+  },
+  "fact_options_daily_quotes": {
+    "description": "選擇權每日報價 (來自 TAIFEX)",
+    "columns": [
+      {"name": "trade_date", "type": "DATE", "nullable": false, "description": "交易日期"},
+      {"name": "contract_symbol", "type": "VARCHAR", "nullable": false, "description": "契約代碼 (例如: 'TXO', 'TEO')"},
+      {"name": "expiry_period", "type": "VARCHAR", "nullable": false, "description": "到期月份(週別) (例如: '202312', '2023W1')"},
+      {"name": "strike_price", "type": "DOUBLE", "nullable": false, "description": "履約價"},
+      {"name": "option_type", "type": "VARCHAR", "nullable": false, "description": "買賣權 (Call/Put)"},
+      {"name": "open_price", "type": "DOUBLE", "description": "開盤價"},
+      {"name": "high_price", "type": "DOUBLE", "description": "最高價"},
+      {"name": "low_price", "type": "DOUBLE", "description": "最低價"},
+      {"name": "close_price", "type": "DOUBLE", "description": "收盤價"},
+      {"name": "volume", "type": "BIGINT", "description": "成交量 (口數)"},
+      {"name": "settlement_price", "type": "DOUBLE", "description": "結算價"},
+      {"name": "open_interest", "type": "BIGINT", "description": "未沖銷契約量 (口數)"},
+      {"name": "best_bid_price", "type": "DOUBLE", "description": "最後最佳買價"},
+      {"name": "best_ask_price", "type": "DOUBLE", "description": "最後最佳賣價"},
+      {"name": "implied_volatility", "type": "DOUBLE", "description": "收盤價隱含波動率"}
+    ],
+    "primary_key": ["trade_date", "contract_symbol", "expiry_period", "strike_price", "option_type"],
+    "indexes": [
+      {"name": "idx_fodq_date_symbol_expiry", "columns": ["trade_date", "contract_symbol", "expiry_period"]},
+      {"name": "idx_fodq_strike", "columns": ["strike_price"]},
+      {"name": "idx_fodq_type", "columns": ["option_type"]}
+    ]
+  },
+  "fact_institutional_futures_trades": {
+    "description": "三大法人期貨交易資訊 (來自 TAIFEX)",
+    "columns": [
+      {"name": "trade_date", "type": "DATE", "nullable": false, "description": "交易日期"},
+      {"name": "product_name", "type": "VARCHAR", "nullable": false, "description": "商品名稱 (例如: '臺股期貨', '小型臺指期貨')"},
+      {"name": "investor_type", "type": "VARCHAR", "nullable": false, "description": "身份別 (例如: '自營商', '投信', '外資')"},
+      {"name": "long_contracts", "type": "BIGINT", "description": "多方交易口數"},
+      {"name": "long_value", "type": "BIGINT", "description": "多方交易金額 (千元)"},
+      {"name": "short_contracts", "type": "BIGINT", "description": "空方交易口數"},
+      {"name": "short_value", "type": "BIGINT", "description": "空方交易金額 (千元)"},
+      {"name": "net_contracts", "type": "BIGINT", "description": "多空交易口數淨額"},
+      {"name": "net_value", "type": "BIGINT", "description": "多空交易金額淨額 (千元)"},
+      {"name": "long_open_interest_contracts", "type": "BIGINT", "description": "多方未平倉口數"},
+      {"name": "long_open_interest_value", "type": "BIGINT", "description": "多方未平倉金額 (千元)"},
+      {"name": "short_open_interest_contracts", "type": "BIGINT", "description": "空方未平倉口數"},
+      {"name": "short_open_interest_value", "type": "BIGINT", "description": "空方未平倉金額 (千元)"},
+      {"name": "net_open_interest_contracts", "type": "BIGINT", "description": "多空未平倉口數淨額"},
+      {"name": "net_open_interest_value", "type": "BIGINT", "description": "多空未平倉金額淨額 (千元)"}
+    ],
+    "primary_key": ["trade_date", "product_name", "investor_type"],
+    "indexes": [
+      {"name": "idx_fift_date_product", "columns": ["trade_date", "product_name"]},
+      {"name": "idx_fift_investor_type", "columns": ["investor_type"]}
+    ]
+  }
+  // 後續可以根據 feature_service 的需求添加特徵表，例如：
+  // "fact_technical_features", "fact_orderflow_features", "fact_sentiment_scores" 等。
+  "quarantine_taifex_data": {
+    "description": "TAIFEX 數據轉換過程中隔離的壞數據行",
+    "columns": [
+      {"name": "quarantine_id", "type": "BIGINT", "nullable": false, "is_identity": true, "description": "唯一的隔離記錄ID (自增)"},
+      {"name": "quarantined_at", "type": "TIMESTAMP_TZ", "nullable": false, "description": "數據被隔離的時間戳"},
+      {"name": "source_file_fingerprint", "type": "VARCHAR", "description": "來源檔案的指紋 (如果可用)"},
+      {"name": "raw_table_name", "type": "VARCHAR", "description": "來源原始表名 (在 raw_lake 中)"},
+      {"name": "recipe_description", "type": "VARCHAR", "description": "處理此數據時使用的配方描述"},
+      {"name": "error_message", "type": "VARCHAR", "nullable": false, "description": "導致隔離的錯誤信息"},
+      {"name": "original_row_data_json", "type": "JSON", "description": "原始數據行的 JSON 表示"},
+      {"name": "notes", "type": "VARCHAR", "description": "額外備註"}
+    ],
+    "primary_key": ["quarantine_id"],
+    "indexes": [
+      {"name": "idx_qtd_timestamp", "columns": ["quarantined_at"]},
+      {"name": "idx_qtd_fingerprint", "columns": ["source_file_fingerprint"]},
+      {"name": "idx_qtd_raw_table", "columns": ["raw_table_name"]}
+    ]
+  }
+}

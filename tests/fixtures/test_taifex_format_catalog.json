@@ -1,0 +1,18 @@
+{
+  "column_mapping_curated": {
+    "交易日期": "trade_date",
+    "契約": "contract",
+    "到期月份(週別)": "expiry_month_week",
+    "開盤價": "open",
+    "收盤價": "close",
+    "成交量": "volume"
+  },
+  "data_types": {
+    "trade_date": "datetime64[ns]",
+    "contract": "object",
+    "expiry_month_week": "object",
+    "open": "float64",
+    "close": "float64",
+    "volume": "int64"
+  }
+}
